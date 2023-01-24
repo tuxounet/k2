@@ -3,10 +3,13 @@
 const args1 = process.argv[process.argv.length - 2];
 const args2 = process.argv[process.argv.length - 1];
 const childProc = require("child_process");
-const proc = childProc.exec(`npx ts-node ./src/index.ts ${args1} ${args2}`, {
-  encoding: "utf-8",
-  cwd: __dirname
-});
+const proc = childProc.exec(
+  `npx ts-node ${__dirname}/src/index.ts ${args1} ${args2}`,
+  {
+    encoding: "utf-8",
+    cwd: process.cwd(),
+  }
+);
 
 proc.stdin.pipe(process.stdin);
 proc.stdout.pipe(process.stdout);
