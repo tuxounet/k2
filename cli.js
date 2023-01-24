@@ -16,6 +16,7 @@ proc.stdout.pipe(process.stdout);
 proc.stderr.pipe(process.stderr);
 proc.on("exit", (code, signal) => {
   if (code === 0) {
+    console.info("bye")
     process.exit(0);
   } else {
     console.error(code, signal);
