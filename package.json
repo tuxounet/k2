@@ -1,5 +1,5 @@
 {
-  "name": "@tuxounet/k2",
+  "name": "k2",
   "version": "1.0.0",
   "description": "K2 Build System",
   "bin": {
