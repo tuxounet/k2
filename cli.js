@@ -17,9 +17,9 @@ proc.stderr.pipe(process.stderr);
 proc.on("exit", (code, signal) => {
   if (code === 0) {
     console.info("bye")
-    process.exit(0);
+    //process.exit(0);
   } else {
     console.error(code, signal);
-    process.exit(code || 254);
+   // process.exit(code || 254);
   }
 });
