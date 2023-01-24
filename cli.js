@@ -5,7 +5,7 @@ const args2 = process.argv[process.argv.length - 1];
 const childProc = require("child_process");
 const proc = childProc.exec(`npx ts-node ./src/index.ts ${args1} ${args2}`, {
   encoding: "utf-8",
-  cwd: process.cwd(),
+  cwd: __dirname
 });
 
 proc.stdin.pipe(process.stdin);
