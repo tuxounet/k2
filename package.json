@@ -5,6 +5,7 @@
   "bin": {
     "k2": "./cli.js"
   },
+  "main": "cli.js",
   "scripts": {
     "prenuke": "npm run clean",
     "nuke": "rm -rf ./node_modules ./package-lock.json",
