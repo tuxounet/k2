@@ -2,9 +2,6 @@
   "name": "@tuxounet/k2",
   "version": "1.0.0",
   "description": "K2 Build System",
-  "main": "cli.js",
-  "type": "commonjs",
-  "types": "./dist/index.d.ts",
   "bin": {
     "k2": "./cli.js"
   },
