@@ -14,7 +14,7 @@ const printVersion = (params: unknown) => {
 const checkParams = () => {
   try {
     const inventory_arg = process.argv[process.argv.length - 2];
-    if (!inventory_arg) {
+    if (!inventory_arg || inventory_arg.endsWith("node")) {
       throw "vous devez preciser un chemin vers un fichier d'inventaire k2";
     }
     if (!fs.existsSync(inventory_arg)) {
@@ -54,6 +54,7 @@ const run = async () => {
   const inventory = new Inventory(inventory_filename, inventory_folder);
 
   await inventory.loadCommands();
+
   if (
     !Array.from(inventory.allowedCommands.keys()).includes(params.command_arg)
   ) {
@@ -61,7 +62,7 @@ const run = async () => {
   }
 
   await inventory.load();
-console.dir(inventory)
+
   const handler = inventory.allowedCommands.get(params.command_arg);
   {
     if (!handler) throw "commande introuvable";

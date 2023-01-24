@@ -51,18 +51,22 @@ export class Inventory {
   }
 
   async loadCommands() {
-    const search_glob = ["commands/*.js"];
+    const search_glob = ["commands/*.js", "commands/*.ts"];
     const entries = await fg(search_glob, {
       onlyFiles: true,
       cwd: __dirname,
     });
+
     this.allowedCommands = new Map();
     entries
       .map((item) => {
         return {
           source: path.join(__dirname, item),
-          require: path.join(__dirname, item.replace(".js", "")),
-          action: path.basename(item).replace(".js", ""),
+          require: path.join(
+            __dirname,
+            item.replace(".js", "").replace(".ts", "")
+          ),
+          action: path.basename(item).replace(".js", "").replace(".ts", ""),
         };
       })
       .map((item) => {
@@ -82,7 +86,6 @@ export class Inventory {
 
   private async loadK2Files<T extends IK2>(search_glob: string[]) {
     const sources = new Map<string, T>();
-    
 
     const sources_entries = await fg(search_glob, {
       onlyFiles: true,
@@ -104,7 +107,6 @@ export class Inventory {
       .map((item) => {
         item.body.k2.metadata.path = item.path;
         item.body.k2.metadata.folder = path.dirname(item.path);
-        console.dir(item)
         return item;
       })
       .filter(

@@ -1,12 +1,12 @@
 {
-  "name": "@k2/cli",
+  "name": "@tuxounet/k2",
   "version": "1.0.0",
-  "description": "",
-  "main": "dist/index.js",
+  "description": "K2 Build System",
+  "main": "cli.js",
   "type": "commonjs",
   "types": "./dist/index.d.ts",
   "bin": {
-    "k2": "./dist/index.js"
+    "k2": "./cli.js"
   },
   "scripts": {
     "prenuke": "npm run clean",
@@ -24,7 +24,8 @@
   "dependencies": {
     "ejs": "^3.1.8",
     "fast-glob": "^3.2.12",
-    "js-yaml": "^4.1.0"
+    "js-yaml": "^4.1.0",
+    "ts-node": "^10.9.1"
   },
   "devDependencies": {
     "@types/ejs": "^3.1.1",
