@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+
 console.info("hello")
 const args1 = process.argv[process.argv.length - 2];
 const args2 = process.argv[process.argv.length - 1];
