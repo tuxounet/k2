@@ -3,9 +3,10 @@
   "version": "1.0.0",
   "description": "K2 Build System",
   "main": "./cli.js",
-  "bin": {
-    "k2": "./cli.js"
-  },
+  "bin": "./cli.js",
+  "files": [
+    "cli.js"
+  ],
   "scripts": {
     "prenuke": "npm run clean",
     "nuke": "rm -rf ./node_modules ./package-lock.json",
@@ -19,9 +20,7 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "dependencies": {
- 
-  },
+  "dependencies": {},
   "devDependencies": {
     "jest": "^29.3.1",
     "ts-jest": "^29.0.5",
