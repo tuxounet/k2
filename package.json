@@ -2,10 +2,8 @@
   "name": "k2",
   "version": "1.0.0",
   "description": "K2 Build System",
-  "bin": {
-    "k2": "./cli.js"
-  },
-  "main": "cli.js",
+  "main": "./cli.js",
+  "bin": "./cli.js",
   "scripts": {
     "prenuke": "npm run clean",
     "nuke": "rm -rf ./node_modules ./package-lock.json",
