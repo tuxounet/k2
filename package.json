@@ -1,6 +1,6 @@
 {
   "name": "k2",
-  "version": "1.0.0",
+  "version": "0.0.3",
   "description": "K2 Build System",
   "main": "./cli.js",
   "bin": "./cli.js",
@@ -8,6 +8,7 @@
     "cli.js"
   ],
   "scripts": {
+    "start" : "node .", 
     "prenuke": "npm run clean",
     "nuke": "rm -rf ./node_modules ./package-lock.json",
     "clean": "rm -rf ./dist ./out ./coverage",
@@ -22,8 +23,6 @@
   "license": "ISC",
   "dependencies": {},
   "devDependencies": {
-    "jest": "^29.3.1",
-    "ts-jest": "^29.0.5",
-    "typescript": "^4.9.4"
+   
   }
 }
