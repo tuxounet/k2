@@ -1,0 +1,35 @@
+{
+  "name": "k2",
+  "version": "0.0.1",
+  "description": "",
+  "main": "cli/index.js",
+  "bin": "cli/index.js",
+  "scripts": {
+    "start": "node ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tuxounet/k2.git"
+  },
+  "keywords": [],
+  "author": {
+    "email": "krux@krux.fr",
+    "name": "Christophe Tiraoui",
+    "url": "https://github.com/tuxounet/k2"
+  },
+  "license": "gplv3",
+  "bugs": {
+    "url": "https://github.com/tuxounet/k2/issues"
+  },
+  "homepage": "https://github.com/tuxounet/k2#readme",
+  "dependencies": {},
+  "devDependencies": {},
+  "files": [
+    "cli/",
+    "LICENSE"
+  ],
+  "engines": {
+    "npm": ">=8.0.0 <9.0.0",
+    "node": ">=16.0.0 <19.0.0"
+  }
+}

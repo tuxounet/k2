@@ -1,0 +1,9 @@
+dist/
+.cache/
+coverage/
+node_modules/
+.cache/_logs
+run/
+output.log
+out/
+logs/
