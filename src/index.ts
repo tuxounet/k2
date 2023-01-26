@@ -7,8 +7,8 @@ const printUsage = () => {
   console.warn("USAGE: npx k2 <k2 inventory file path> <action>");
 };
 
-const printVersion = (params: unknown) => {
-  console.warn("K2 par Krux", params);
+const printVersion = () => {
+  console.warn("K2 by github:@tuxounet");
 };
 
 const checkParams = () => {
@@ -44,9 +44,9 @@ const checkParams = () => {
     throw error;
   }
 };
+printVersion();
 const params = checkParams();
-printVersion(params);
-
+console.info("parametres", params);
 const run = async () => {
   const full_path = path.resolve(params.inventory_arg);
   const inventory_folder = path.dirname(full_path);

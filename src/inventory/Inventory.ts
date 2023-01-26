@@ -5,6 +5,9 @@ import jsYaml from "js-yaml";
 import { IK2 } from "../types/IK2";
 import { IK2Inventory } from "../types/IK2Inventory";
 import { IK2Template } from "../types/IK2Template";
+import applyCommand from "../commands/apply";
+import cleanCommand from "../commands/clean";
+import listCommand from "../commands/list";
 
 export class Inventory {
   constructor(
@@ -51,37 +54,10 @@ export class Inventory {
   }
 
   async loadCommands() {
-    const search_glob = ["commands/*.js", "commands/*.ts"];
-    const entries = await fg(search_glob, {
-      onlyFiles: true,
-      cwd: __dirname,
-    });
-
     this.allowedCommands = new Map();
-    entries
-      .map((item) => {
-        return {
-          source: path.join(__dirname, item),
-          require: path.join(
-            __dirname,
-            item.replace(".js", "").replace(".ts", "")
-          ),
-          action: path.basename(item).replace(".js", "").replace(".ts", ""),
-        };
-      })
-      .map((item) => {
-        return {
-          ...item,
-          handler: require(item.require).default,
-        };
-      })
-      .filter((item) => item.handler !== undefined)
-      .forEach((item) => {
-        this.allowedCommands.set(
-          item.action.toLowerCase().trim(),
-          item.handler
-        );
-      });
+    this.allowedCommands.set("apply", applyCommand);
+    this.allowedCommands.set("clean", cleanCommand);
+    this.allowedCommands.set("list", cleanCommand);
   }
 
   private async loadK2Files<T extends IK2>(search_glob: string[]) {

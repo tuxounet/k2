@@ -1,16 +1,16 @@
-import { IK2Template } from "../../types/IK2Template";
-import { Inventory } from "../Inventory";
+import { IK2Template } from "../types/IK2Template";
+import { Inventory } from "../inventory/Inventory";
 import path from "path";
 import fs from "fs";
 import fg from "fast-glob";
 import ejs from "ejs";
-import { IK2Inventory } from "../../types/IK2Inventory";
-import { IK2Apply } from "../../types/IK2Apply";
+import { IK2Inventory } from "../types/IK2Inventory";
+import { IK2Apply } from "../types/IK2Apply";
 export default async function apply(inventory: Inventory) {
   console.info("apply");
 
   const all_templates_requests = Array.from(inventory.sources.values())
-    .filter((item) => item.k2.metadata.kind === "template-apply")    
+    .filter((item) => item.k2.metadata.kind === "template-apply")
     .map((item) => item as IK2Apply)
     .map((item) => {
       return {
@@ -24,8 +24,8 @@ export default async function apply(inventory: Inventory) {
       };
     })
     .map((item) => {
-      console.info(item)
-      return item
+      console.info(item);
+      return item;
     })
     .filter((item) => item.template !== undefined && item.path !== undefined)
     .map(

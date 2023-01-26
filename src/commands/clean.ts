@@ -1,11 +1,10 @@
-import { IK2Template } from "../../types/IK2Template";
-import { Inventory } from "../Inventory";
+import { IK2Template } from "../types/IK2Template";
+import { Inventory } from "../inventory/Inventory";
 import path from "path";
 import fs from "fs";
 import fg from "fast-glob";
 import childProc from "child_process";
-import { IK2Inventory } from "../../types/IK2Inventory";
-import { IK2Apply } from "../../types/IK2Apply";
+import { IK2Apply } from "../types/IK2Apply";
 export default async function clean(inventory: Inventory) {
   console.info("clean");
 

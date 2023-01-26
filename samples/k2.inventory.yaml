@@ -7,9 +7,9 @@ k2:
       title: k2 cli samples and tests
     folders:
       ignore: []
-      sources:
-        - services/**/k2.*.yaml
-        - services/**/k2.*.yml
       templates:
         - templates/**/k2.*.yaml
         - templates/**/k2.*.yml
+      sources:
+        - services/**/k2.*.yaml
+        - services/**/k2.*.yml

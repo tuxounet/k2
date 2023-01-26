@@ -1,6 +1,6 @@
-import { Inventory } from "../Inventory";
+import { Inventory } from "../inventory/Inventory";
 import path from "path";
-import { IK2 } from "../../types/IK2";
+import { IK2 } from "../types/IK2";
 export default async function list(inventory: Inventory) {
   console.info("list");
 
