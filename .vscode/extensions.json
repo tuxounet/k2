@@ -1,0 +1,7 @@
+{
+    "recommendations": [
+        "dbaeumer.vscode-eslint",
+        "seatonjiang.gitmoji-vscode",
+        "GitHub.vscode-pull-request-github"
+    ]
+}

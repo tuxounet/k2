@@ -3,41 +3,43 @@ import path from "path";
 import fs from "fs";
 import { Inventory } from "./inventory/Inventory";
 
-const printUsage = () => {
+const printUsage = (): void => {
   console.warn("USAGE: npx k2 <k2 inventory file path> <action>");
 };
 
-const printVersion = () => {
+const printVersion = (): void => {
   console.warn("K2 by github:@tuxounet");
 };
 
-const checkParams = () => {
+const checkParams = (): { inventoryArg: string; commandArg: string } => {
   try {
-    const inventory_arg = process.argv[process.argv.length - 2];
-    if (!inventory_arg || inventory_arg.endsWith("node")) {
-      throw "vous devez preciser un chemin vers un fichier d'inventaire k2";
+    const inventoryArg = process.argv[process.argv.length - 2];
+    if (inventoryArg.trim() !== "" || inventoryArg.endsWith("node")) {
+      throw new Error(
+        "vous devez preciser un chemin vers un fichier d'inventaire k2"
+      );
     }
-    if (!fs.existsSync(inventory_arg)) {
-      throw "fichier d'inventaire introuvable";
+    if (!fs.existsSync(inventoryArg)) {
+      throw new Error("fichier d'inventaire introuvable");
     }
-    const stat = fs.statSync(inventory_arg);
+    const stat = fs.statSync(inventoryArg);
     if (!stat.isFile()) {
-      throw "chemin d'entrée doit etre un fichier d'inventaire k2";
+      throw new Error("chemin d'entrée doit etre un fichier d'inventaire k2");
     }
 
-    const command_arg = process.argv[process.argv.length - 1];
+    const commandArg = process.argv[process.argv.length - 1];
     if (
-      command_arg !== undefined &&
-      command_arg !== "" &&
-      typeof command_arg === "string" &&
-      command_arg !== __filename
+      commandArg !== undefined &&
+      commandArg !== "" &&
+      typeof commandArg === "string" &&
+      commandArg !== __filename
     ) {
       return {
-        inventory_arg,
-        command_arg: command_arg.toLowerCase().trim(),
+        inventoryArg,
+        commandArg: commandArg.toLowerCase().trim(),
       };
     } else {
-      throw "format de la commande incorrect";
+      throw new Error("format de la commande incorrect");
     }
   } catch (error) {
     printUsage();
@@ -47,26 +49,25 @@ const checkParams = () => {
 printVersion();
 const params = checkParams();
 console.info("parametres", params);
-const run = async () => {
-  const full_path = path.resolve(params.inventory_arg);
-  const inventory_folder = path.dirname(full_path);
-  const inventory_filename = path.basename(full_path);
-  const inventory = new Inventory(inventory_filename, inventory_folder);
+const run = async (): Promise<void> => {
+  const fullPath = path.resolve(params.inventoryArg);
+  const inventoryFolder = path.dirname(fullPath);
+  const inventoryFilename = path.basename(fullPath);
+  const inventory = new Inventory(inventoryFilename, inventoryFolder);
 
   await inventory.loadCommands();
 
   if (
-    !Array.from(inventory.allowedCommands.keys()).includes(params.command_arg)
+    !Array.from(inventory.allowedCommands.keys()).includes(params.commandArg)
   ) {
-    throw "commande incorrecte";
+    throw new Error("commande incorrecte");
   }
 
   await inventory.load();
 
-  const handler = inventory.allowedCommands.get(params.command_arg);
-  {
-    if (!handler) throw "commande introuvable";
-  }
+  const handler = inventory.allowedCommands.get(params.commandArg);
+
+  if (handler == null) throw new Error("commande introuvable");
 
   await handler(inventory);
 };

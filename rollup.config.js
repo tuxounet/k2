@@ -10,7 +10,8 @@ module.exports.default = [
     external: Object.keys(pkg.dependencies),
     output: {
       file: "dist/index.js",
-      format: "cjs", sourcemap: "inline"
+      format: "cjs",
+      sourcemap: "inline",
     },
     plugins: [
       shebang({ shebang: "#!/usr/bin/env node" }),

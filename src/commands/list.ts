@@ -1,12 +1,11 @@
 import { Inventory } from "../inventory/Inventory";
 import path from "path";
-import { IK2 } from "../types/IK2";
-export default async function list(inventory: Inventory) {
+export default async function list(inventory: Inventory): Promise<void> {
   console.info("list");
 
   Array.from(inventory.sources.values())
 
-    .map((item) => item as IK2)
+    .map((item) => item)
     .map((item) => {
       return {
         request: item,
@@ -16,7 +15,7 @@ export default async function list(inventory: Inventory) {
       };
     })
     .forEach((item) => {
-      item.entry &&
+      item.entry != null &&
         console.info(
           item.entry.k2.metadata.id,
           "(",
