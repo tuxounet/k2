@@ -8,7 +8,10 @@ const printUsage = (): void => {
 };
 
 const printVersion = (): void => {
-  console.warn("K2 by github:@tuxounet");
+  const packageJson = path.join(__dirname, "package.json");
+  const obj = JSON.parse(fs.readFileSync(packageJson, "utf-8"));
+
+  console.warn("K2 by github:@tuxounet", obj.version);
 };
 
 const checkParams = (): { inventoryArg: string; commandArg: string } => {
