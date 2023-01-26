@@ -1,7 +1,7 @@
 {
-  "name": "@tuxounet/k2",
+  "name": "@tuxounet-k2/cli",
   "version": "0.0.1",
-  "description": "K2 Build System",
+  "description": "K2 Build System CLI",
   "main": "./dist/index.js",
   "bin": "./dist/index.js",
   "files": [
