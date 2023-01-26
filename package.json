@@ -1,4 +1,5 @@
 {
+
   "name": "@tuxounet-k2/cli",
   "version": "0.0.1",
   "description": "K2 Build System CLI",
@@ -26,6 +27,7 @@
     "samples:clean": "npm run build && npm start ./samples/k2.inventory.yaml clean",
     "samples:apply": "npm run build && npm start ./samples/k2.inventory.yaml apply",
     "samples:list": "npm run build && npm start ./samples/k2.inventory.yaml list"
+
   },
   "repository": {
     "type": "git",
@@ -43,6 +45,7 @@
   },
   "homepage": "https://github.com/tuxounet/k2#readme",
   "dependencies": {},
+
   "devDependencies": {
     "@types/ejs": "^3.1.1",
     "@types/jest": "^29.2.6",
@@ -71,5 +74,6 @@
     "eslint-plugin-promise": "^6.0.1",
     "@typescript-eslint/eslint-plugin": "^5.39.0",
     "@typescript-eslint/parser": "^5.39.0"
+
   }
 }
