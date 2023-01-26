@@ -1,0 +1,9 @@
+k2:
+  metadata:
+    id: k2.cli.sample.templates.kind2.sub
+    kind: "template-apply"
+  body:
+    template: "k2.cli.sample.templates.kind1"
+    vars:
+      name: "sub-kind2"
+      description: "Sub Template of type kind2"

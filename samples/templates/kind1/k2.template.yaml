@@ -1,0 +1,9 @@
+k2:
+  metadata:
+    id: k2.cli.sample.templates.kind1
+    kind: "template"
+  body:
+    name: "kind1"
+    vars:
+      name: "kind1"
+      description: "Template of type kind1"

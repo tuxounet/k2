@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "ESNext",
+    "strict": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "resolveJsonModule": true,
+    "moduleResolution": "node",    
+    "sourceMap": true,
+    "declaration": false,
+    "declarationMap": false,
+    "outDir": "./dist",
+    "types": ["node", "jest"],
+    "typeRoots": ["./node_modules/@types"]
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/ejs": "^3.1.1",
+    "@types/jest": "^29.2.6",
+    "@types/js-yaml": "^4.0.5",
+    "ejs": "^3.1.8",
+    "fast-glob": "^3.2.12",
+    "js-yaml": "^4.1.0",
+    "jest": "^29.3.1",
+    "ts-jest": "^29.0.5",
+    "typescript": "^4.9.4"
+  },
+  "include": ["src"],
+  "exclude": [
+    "**/node_modules",
+    "**/dist",
+    "**/coverage",
+    "**/out",
+    "**/cdk.out",
+    "**/*.test.ts"
+  ]
+}
