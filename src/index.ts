@@ -8,7 +8,7 @@ const printUsage = (): void => {
 };
 
 const printVersion = (): void => {
-  const packageJson = path.join(__dirname, "package.json");
+  const packageJson = path.join(__dirname, "..", "package.json");
   const obj = JSON.parse(fs.readFileSync(packageJson, "utf-8"));
 
   console.warn("K2 by github:@tuxounet", obj.version);
