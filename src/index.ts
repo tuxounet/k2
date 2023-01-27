@@ -3,8 +3,9 @@ import path from "path";
 import fs from "fs";
 import { Inventory } from "./inventory/Inventory";
 
-const printUsage = (): void => {
+const printUsage = (params?: string[]): void => {
   console.warn("USAGE: npx k2 <k2 inventory file path> <action>");
+  console.warn("received parameters", params);
 };
 
 const printVersion = (): void => {
@@ -15,9 +16,13 @@ const printVersion = (): void => {
 };
 
 const checkParams = (): { inventoryArg: string; commandArg: string } => {
+  const params = process.argv.filter(
+    (item, index) => index >= process.argv.length - 2
+  );
+
   try {
-    const inventoryArg = process.argv[process.argv.length - 2];
-    if (inventoryArg.trim() !== "" || inventoryArg.endsWith("node")) {
+    const inventoryArg = params[0];
+    if (inventoryArg.trim() === "" || inventoryArg.endsWith("node")) {
       throw new Error(
         "vous devez preciser un chemin vers un fichier d'inventaire k2"
       );
@@ -30,7 +35,7 @@ const checkParams = (): { inventoryArg: string; commandArg: string } => {
       throw new Error("chemin d'entrée doit etre un fichier d'inventaire k2");
     }
 
-    const commandArg = process.argv[process.argv.length - 1];
+    const commandArg = params[1];
     if (
       commandArg !== undefined &&
       commandArg !== "" &&
@@ -45,7 +50,7 @@ const checkParams = (): { inventoryArg: string; commandArg: string } => {
       throw new Error("format de la commande incorrect");
     }
   } catch (error) {
-    printUsage();
+    printUsage(params);
     throw error;
   }
 };
