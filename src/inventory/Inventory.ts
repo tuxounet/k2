@@ -7,6 +7,7 @@ import { IK2Inventory } from "../types/IK2Inventory";
 import { IK2Template } from "../types/IK2Template";
 import applyCommand from "../commands/apply";
 import cleanCommand from "../commands/clean";
+import { inventoryKind } from "./kinds";
 
 export class Inventory {
   constructor(
@@ -39,7 +40,7 @@ export class Inventory {
     ];
     this.sources = await this.loadK2Files(sourcesGlob);
     const inventory = Array.from(this.sources.values()).find(
-      (item) => item.k2.metadata.kind === "k2.inventory"
+      (item) => item.k2.metadata.kind === inventoryKind
     );
     if (inventory == null) {
       throw new Error("fichier d'inventaire k2 introuvable");

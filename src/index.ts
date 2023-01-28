@@ -15,7 +15,11 @@ const printVersion = (): void => {
   console.warn("K2 by github:@tuxounet", obj.version);
 };
 
-const checkParams = (): { inventoryArg: string; commandArg: string } => {
+const checkParams = (): {
+  inventoryArg: string;
+  commandArg: string;
+  runFolder: string;
+} => {
   const params = process.argv.filter(
     (item, index) => index >= process.argv.length - 2
   );
@@ -43,6 +47,7 @@ const checkParams = (): { inventoryArg: string; commandArg: string } => {
       commandArg !== __filename
     ) {
       return {
+        runFolder: process.cwd(),
         inventoryArg,
         commandArg: commandArg.toLowerCase().trim(),
       };
