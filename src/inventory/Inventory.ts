@@ -35,7 +35,7 @@ export class Inventory {
   async load(): Promise<void> {
     const sourcesGlob = [
       this.inventoryFilename,
-      ...this.inventory.k2.body.folders.sources,
+      ...this.inventory.k2.body.folders.applies,
     ];
     this.sources = await this.loadK2Files(sourcesGlob);
     const inventory = Array.from(this.sources.values()).find(
