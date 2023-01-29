@@ -4,6 +4,6 @@ k2:
     kind: "template"
   body:
     name: "kind2"
-    vars:
+    parameters:
       name: "kind2"
       description: "Template of type kind2"
