@@ -24,14 +24,14 @@ export default async function apply(inventory: Inventory): Promise<void> {
     })
     .filter((item) => item.template !== undefined)
     .filter((item) => item.path !== undefined)
-    .map(async (item) => {
-      return await applyTemplate(
+    .map((item) =>
+      applyTemplate(
         item.folder,
         item.request,
         inventory.inventory,
         item.template
-      );
-    });
+      )
+    );
 
   await Promise.all(allRequests);
 }
