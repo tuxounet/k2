@@ -1,8 +1,6 @@
-export interface IK2Body extends Record<string, unknown> {
-  vars?: Record<string, string>;
-}
+export interface IK2Body {}
 
-export interface IK2<TBody extends IK2Body = Record<string, unknown>> {
+export interface IK2<TBody extends IK2Body = IK2Body> {
   k2: {
     metadata: {
       id: string;

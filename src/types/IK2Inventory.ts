@@ -6,6 +6,7 @@ export interface IK2InventoryBody extends IK2Body {
     applies: string[];
     templates: string[];
   };
+  vars?: Record<string, string>;
 }
 
 export interface IK2Inventory extends IK2<IK2InventoryBody> {}

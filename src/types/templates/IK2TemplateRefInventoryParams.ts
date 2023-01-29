@@ -1,1 +1,3 @@
-export interface IK2TemplateRefInventoryParams {}
+export interface IK2TemplateRefInventoryParams {
+  id: string;
+}

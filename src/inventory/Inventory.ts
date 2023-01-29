@@ -7,6 +7,7 @@ import { IK2Inventory } from "../types/IK2Inventory";
 import { IK2Template } from "../types/IK2Template";
 import applyCommand from "../commands/apply";
 import cleanCommand from "../commands/clean";
+import listCommand from "../commands/list";
 import { inventoryKind } from "./kinds";
 
 export class Inventory {
@@ -55,7 +56,7 @@ export class Inventory {
     this.allowedCommands = new Map();
     this.allowedCommands.set("apply", applyCommand);
     this.allowedCommands.set("clean", cleanCommand);
-    this.allowedCommands.set("list", cleanCommand);
+    this.allowedCommands.set("list", listCommand);
   }
 
   private async loadK2Files<T extends IK2>(
