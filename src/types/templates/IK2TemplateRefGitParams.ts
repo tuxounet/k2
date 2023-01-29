@@ -1,1 +1,4 @@
-export interface IK2TemplateRefGitParams {}
+export interface IK2TemplateRefGitParams {
+  repository: string;
+  path: string;
+}

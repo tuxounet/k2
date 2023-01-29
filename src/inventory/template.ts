@@ -8,13 +8,14 @@ export function resolveTemplate(
   ref: IK2TemplateRef
 ): IK2Template {
   switch (ref.source) {
-    case "inventory":
+    case "inventory": {
       const param = ref.params as IK2TemplateRefInventoryParams;
       const template = inventory.templates.get(param.id);
-      if (!template) {
+      if (template == null) {
         throw new Error("template introuvable dans l'inventaire " + param.id);
       }
       return template;
+    }
     default:
       throw new Error("source de template non trouvé " + ref.source);
   }
