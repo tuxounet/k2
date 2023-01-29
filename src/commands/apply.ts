@@ -7,6 +7,7 @@ import ejs from "ejs";
 import { IK2Inventory } from "../types/IK2Inventory";
 import { IK2Apply } from "../types/IK2Apply";
 import { templateApplyKind } from "../inventory/kinds";
+import { resolveTemplate } from "../inventory/template";
 export default async function apply(inventory: Inventory): Promise<void> {
   console.info("apply");
 
@@ -18,22 +19,19 @@ export default async function apply(inventory: Inventory): Promise<void> {
         request: item,
         path: item.k2.metadata.path,
         folder: path.dirname(item.k2.metadata.path),
-        template: inventory.templates.get(String(item.k2.body.template)),
+        template: resolveTemplate(inventory, item.k2.body.template),
       };
     })
-    .map((item) => {
-      console.info(item);
-      return item;
-    })
-    .filter((item) => item.template !== undefined && item.path !== undefined)
+    .filter((item) => item.template !== undefined)
+    .filter((item) => item.path !== undefined)
     .map(
       (item) =>
-        item.template != null &&
+        item.template &&
         applyTemplate(
-          item.template,
           item.folder,
           item.request,
-          inventory.inventory
+          inventory.inventory,
+          item.template
         )
     );
 
@@ -41,12 +39,13 @@ export default async function apply(inventory: Inventory): Promise<void> {
 }
 
 async function applyTemplate(
-  template: IK2Template,
   destinationFolder: string,
   request: IK2Apply,
-  inventory: IK2Inventory
+  inventory: IK2Inventory,
+  template: IK2Template
 ): Promise<void> {
-  console.info("apply template", template.k2.body.name, destinationFolder);
+  console.info("apply template", destinationFolder);
+
   const allTemplateFiles = await fg(["**/*", "**/.gitignore"], {
     markDirectories: true,
     onlyFiles: false,

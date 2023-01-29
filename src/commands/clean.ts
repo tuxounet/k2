@@ -6,6 +6,7 @@ import fg from "fast-glob";
 import childProc from "child_process";
 import { IK2Apply } from "../types/IK2Apply";
 import { templateApplyKind } from "../inventory/kinds";
+import { resolveTemplate } from "../inventory/template";
 export default async function clean(inventory: Inventory): Promise<void> {
   console.info("clean");
 
@@ -17,7 +18,7 @@ export default async function clean(inventory: Inventory): Promise<void> {
         request: item,
         path: item.k2.metadata.path,
         folder: path.dirname(item.k2.metadata.path),
-        template: inventory.templates.get(String(item.k2.body.template)),
+        template: resolveTemplate(inventory, item.k2.body.template),
       };
     })
     .filter((item) => item.template !== undefined && item.path !== undefined)
