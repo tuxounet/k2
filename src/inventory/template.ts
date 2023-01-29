@@ -16,7 +16,7 @@ export function resolveTemplate(
       const param = ref.params as IK2TemplateRefInventoryParams;
       const template = inventory.templates.get(param.id);
       if (template == null) {
-        throw new Error("template introuvable dans l'inventaire " + param.id);
+        throw new Error(`template introuvable dans l'inventaire ${param.id}`);
       }
       return template;
     }
@@ -24,12 +24,12 @@ export function resolveTemplate(
       const param = ref.params as IK2TemplateRefGitParams;
       const template = resolveGitTemplate(inventory, param);
       if (template == null) {
-        throw new Error("template non résolu  " + param.repository);
+        throw new Error(`template non résolu ${param.repository}`);
       }
       return template;
     }
     default:
-      throw new Error("source de template non trouvé " + ref.source);
+      throw new Error(`source de template non trouvé ${String(ref.source)}`);
   }
 }
 
@@ -50,7 +50,9 @@ function resolveGitTemplate(
   if (!fs.existsSync(templateRefPath)) {
     exec(
       `git clone  ${
-        refParams.branch ? `--branch ${refParams.branch} --single-branch` : ""
+        refParams.branch !== undefined
+          ? `--branch ${refParams.branch} --single-branch`
+          : ""
       } ${refParams.repository} ${templateRefPath}`,
       inventory.inventoryFolder
     );

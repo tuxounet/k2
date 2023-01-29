@@ -59,7 +59,7 @@ export class Inventory {
     this.allowedCommands.set("list", listCommand);
   }
 
-  loadK2File<T extends IK2>(filePath: string) {
+  loadK2File<T extends IK2>(filePath: string): T {
     const item = jsYaml.load(
       fs.readFileSync(filePath, {
         encoding: "utf-8",
