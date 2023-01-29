@@ -59,6 +59,17 @@ export class Inventory {
     this.allowedCommands.set("list", listCommand);
   }
 
+  loadK2File<T extends IK2>(filePath: string): T {
+    const item = jsYaml.load(
+      fs.readFileSync(filePath, {
+        encoding: "utf-8",
+      })
+    ) as T;
+    item.k2.metadata.path = filePath;
+    item.k2.metadata.folder = path.dirname(filePath);
+    return item;
+  }
+
   private async loadK2Files<T extends IK2>(
     searchGlob: string[]
   ): Promise<Map<string, T>> {

@@ -7,6 +7,7 @@ import childProc from "child_process";
 import { IK2Apply } from "../types/IK2Apply";
 import { templateApplyKind } from "../inventory/kinds";
 import { resolveTemplate } from "../inventory/template";
+import { exec } from "../helpers/exec";
 export default async function clean(inventory: Inventory): Promise<void> {
   console.info("clean");
 
@@ -22,12 +23,10 @@ export default async function clean(inventory: Inventory): Promise<void> {
       };
     })
     .filter((item) => item.template !== undefined && item.path !== undefined)
-    .map(
-      (item) =>
-        item.template != null && cleanTemplate(item.template, item.folder)
-    );
+    .map(async (item) => await cleanTemplate(item.template, item.folder));
 
   await Promise.all(allRequests);
+  await cleanupRefs(inventory);
 }
 
 async function cleanTemplate(
@@ -56,4 +55,11 @@ async function cleanTemplate(
   childProc.execSync("find . -empty -type d -delete", {
     cwd: destinationFolder,
   });
+}
+
+async function cleanupRefs(inventory: Inventory): Promise<void> {
+  const templateRefs = path.join(inventory.inventoryFolder, "refs");
+  if (fs.existsSync(templateRefs)) {
+    exec(`rm -rf ${templateRefs}`, inventory.inventoryFolder);
+  }
 }
