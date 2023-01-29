@@ -21,7 +21,7 @@ export default async function list(inventory: Inventory): Promise<void> {
           "(",
           item.entry.k2.metadata.kind,
           "/",
-          item.entry.k2.body.template,
+          item.entry.k2.metadata.version ?? "latest",
           ")"
         );
     });

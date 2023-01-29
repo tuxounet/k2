@@ -7,6 +7,8 @@ import { IK2Inventory } from "../types/IK2Inventory";
 import { IK2Template } from "../types/IK2Template";
 import applyCommand from "../commands/apply";
 import cleanCommand from "../commands/clean";
+import listCommand from "../commands/list";
+import { inventoryKind } from "./kinds";
 
 export class Inventory {
   constructor(
@@ -35,11 +37,11 @@ export class Inventory {
   async load(): Promise<void> {
     const sourcesGlob = [
       this.inventoryFilename,
-      ...this.inventory.k2.body.folders.sources,
+      ...this.inventory.k2.body.folders.applies,
     ];
     this.sources = await this.loadK2Files(sourcesGlob);
     const inventory = Array.from(this.sources.values()).find(
-      (item) => item.k2.metadata.kind === "k2.inventory"
+      (item) => item.k2.metadata.kind === inventoryKind
     );
     if (inventory == null) {
       throw new Error("fichier d'inventaire k2 introuvable");
@@ -54,7 +56,7 @@ export class Inventory {
     this.allowedCommands = new Map();
     this.allowedCommands.set("apply", applyCommand);
     this.allowedCommands.set("clean", cleanCommand);
-    this.allowedCommands.set("list", cleanCommand);
+    this.allowedCommands.set("list", listCommand);
   }
 
   private async loadK2Files<T extends IK2>(
