@@ -82,6 +82,7 @@ async function applyTemplate(
             const output = await ejs.render(
               input,
               {
+                ...template.k2.body.parameters,
                 ...inventory.k2.body.vars,
                 ...request.k2.body.vars,
               },
