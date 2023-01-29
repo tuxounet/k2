@@ -7,6 +7,7 @@ export interface IK2<TBody extends IK2Body = Record<string, unknown>> {
     metadata: {
       id: string;
       kind: string;
+      version?: string;
       path: string;
       folder: string;
     };
