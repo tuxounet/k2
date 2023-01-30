@@ -19,37 +19,12 @@ export default function apply(): Command {
     "inventory file",
     path.join(process.cwd(), "k2.inventory.yaml")
   );
-  program.action(async () => {
+  program.action(async (inventoryPath: string) => {
     const run = async () => {
-      const opts = program.opts();
-      console.info("apply", opts);
-      const inventoryPath = opts.inventory;
-      const inventory = await getInventory(inventoryPath);
-
-      const allRequests = Array.from(inventory.sources.values())
-        .filter((item) => item.k2.metadata.kind === templateApplyKind)
-        .map((item) => item as IK2Apply)
-        .map((item) => {
-          return {
-            request: item,
-            path: item.k2.metadata.path,
-            folder: path.dirname(item.k2.metadata.path),
-            template: resolveTemplate(inventory, item.k2.body.template),
-          };
-        })
-        .filter((item) => item.template !== undefined)
-        .filter((item) => item.path !== undefined)
-        .map(
-          async (item) =>
-            await applyTemplate(
-              item.folder,
-              item.request,
-              inventory.inventory,
-              item.template
-            )
-        );
-
-      await Promise.all(allRequests);
+      let reapply = await doApply(program.getOptionValue("inventory"));
+      while (reapply === true) {
+        reapply = await doApply(program.getOptionValue("inventory"));
+      }
     };
     run().catch((e) => {
       console.error(e);
@@ -59,12 +34,47 @@ export default function apply(): Command {
   return program;
 }
 
+async function doApply(inventoryPath: string): Promise<boolean> {
+  console.debug("do apply");
+  const inventory = await getInventory(inventoryPath);
+
+  const allRequests = Array.from(inventory.sources.values())
+    .filter((item) => item.k2.metadata.kind === templateApplyKind)
+    .map((item) => item as IK2Apply)
+    .map((item) => {
+      return {
+        request: item,
+        path: item.k2.metadata.path,
+        folder: path.dirname(item.k2.metadata.path),
+        template: resolveTemplate(inventory, item.k2.body.template),
+      };
+    })
+    .filter((item) => item.template !== undefined)
+    .filter((item) => item.path !== undefined)
+    .map(
+      async (item) =>
+        await applyTemplate(
+          item.folder,
+          item.request,
+          inventory.inventory,
+          item.template
+        )
+    );
+
+  const results = await Promise.all(allRequests);
+  if (results.filter((item) => item === true).length > 0) {
+    console.warn("need reapply");
+    return true;
+  }
+  return false;
+}
+
 async function applyTemplate(
   destinationFolder: string,
   request: IK2Apply,
   inventory: IK2Inventory,
   template: IK2Template
-): Promise<void> {
+): Promise<boolean> {
   console.info("apply template", destinationFolder);
 
   const allTemplateFiles = await fg(["**/*", "**/.gitignore"], {
@@ -77,6 +87,7 @@ async function applyTemplate(
     .map((item) => {
       return {
         item,
+        filename: path.basename(item),
         sourcePath: path.join(template.k2.metadata.folder, item),
         isDirectory: item.endsWith("/"),
         destinationPath: path.join(destinationFolder, item),
@@ -93,6 +104,11 @@ async function applyTemplate(
           await fs.promises.mkdir(item.destinationPath, { recursive: true })
       )
   );
+
+  const notExistingSubApplies = allCopies
+    .filter((item) => !item.isDirectory)
+    .filter((item) => item.filename.trim().toLowerCase() === "k2.apply.yaml")
+    .filter((item) => !fs.existsSync(item.destinationPath));
 
   await Promise.all(
     allCopies
@@ -147,4 +163,6 @@ async function applyTemplate(
       });
     }
   }
+
+  return notExistingSubApplies.length > 0;
 }
