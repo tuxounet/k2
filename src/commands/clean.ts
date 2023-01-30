@@ -31,11 +31,10 @@ export default function clean(): Command {
           request: item,
           path: item.k2.metadata.path,
           folder: path.dirname(item.k2.metadata.path),
-          template: resolveTemplate(inventory, item.k2.body.template),
         };
       })
-      .filter((item) => item.template !== undefined && item.path !== undefined)
-      .map((item) => cleanTemplate(item.template, item.folder));
+      .filter((item) => item.path !== undefined)
+      .map((item) => cleanTemplate(item.folder));
 
     await Promise.all(allRequests);
     await cleanupRefs(inventory);
@@ -43,11 +42,8 @@ export default function clean(): Command {
   return program;
 }
 
-async function cleanTemplate(
-  template: IK2Template,
-  destinationFolder: string
-): Promise<void> {
-  console.info("cleaning folder", template.k2.body.name, destinationFolder);
+async function cleanTemplate(destinationFolder: string): Promise<void> {
+  console.info("cleaning folder", destinationFolder);
   const allTemplatedFiles = await fg(["**/*", "**/.*"], {
     markDirectories: true,
     onlyFiles: false,
@@ -72,8 +68,11 @@ async function cleanTemplate(
 }
 
 async function cleanupRefs(inventory: Inventory): Promise<void> {
-  const templateRefs = path.join(inventory.inventoryFolder, "refs");
+  const templateRefs = path.join(
+    inventory.inventory.k2.metadata.folder,
+    "refs"
+  );
   if (fs.existsSync(templateRefs)) {
-    exec(`rm -rf ${templateRefs}`, inventory.inventoryFolder);
+    exec(`rm -rf ${templateRefs}`, inventory.inventory.k2.metadata.folder);
   }
 }

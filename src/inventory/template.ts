@@ -46,7 +46,11 @@ function resolveGitTemplate(
     })
   );
 
-  const templateRefPath = path.join(inventory.inventoryFolder, "refs", id);
+  const templateRefPath = path.join(
+    inventory.inventory.k2.metadata.folder,
+    "refs",
+    id
+  );
   if (!fs.existsSync(templateRefPath)) {
     exec(
       `git clone  ${
@@ -54,7 +58,7 @@ function resolveGitTemplate(
           ? `--branch ${refParams.branch} --single-branch`
           : ""
       } ${refParams.repository} ${templateRefPath}`,
-      inventory.inventoryFolder
+      inventory.inventory.k2.metadata.folder
     );
   } else {
     exec(`git pull`, templateRefPath);
