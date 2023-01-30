@@ -1,5 +1,4 @@
 import { IK2Template } from "../types/IK2Template";
-import { Inventory } from "../inventory/Inventory";
 import path from "path";
 import fs from "fs";
 import fg from "fast-glob";
@@ -8,33 +7,56 @@ import { IK2Inventory } from "../types/IK2Inventory";
 import { IK2Apply } from "../types/IK2Apply";
 import { templateApplyKind } from "../inventory/kinds";
 import { resolveTemplate } from "../inventory/template";
-export default async function apply(inventory: Inventory): Promise<void> {
-  console.info("apply");
+import { Command } from "commander";
+import { getInventory } from "../inventory/getInventory";
 
-  const allRequests = Array.from(inventory.sources.values())
-    .filter((item) => item.k2.metadata.kind === templateApplyKind)
-    .map((item) => item as IK2Apply)
-    .map((item) => {
-      return {
-        request: item,
-        path: item.k2.metadata.path,
-        folder: path.dirname(item.k2.metadata.path),
-        template: resolveTemplate(inventory, item.k2.body.template),
-      };
-    })
-    .filter((item) => item.template !== undefined)
-    .filter((item) => item.path !== undefined)
-    .map(
-      async (item) =>
-        await applyTemplate(
-          item.folder,
-          item.request,
-          inventory.inventory,
-          item.template
-        )
-    );
+export default function apply(): Command {
+  const program = new Command("apply");
 
-  await Promise.all(allRequests);
+  program.description("apply all elements in current inventory folder");
+  program.option(
+    "-i, --inventory <value>",
+    "inventory file",
+    path.join(process.cwd(), "k2.inventory.yaml")
+  );
+  program.action(async () => {
+    const run = async () => {
+      const opts = program.opts();
+      console.info("apply", opts);
+      const inventoryPath = opts.inventory;
+      const inventory = await getInventory(inventoryPath);
+
+      const allRequests = Array.from(inventory.sources.values())
+        .filter((item) => item.k2.metadata.kind === templateApplyKind)
+        .map((item) => item as IK2Apply)
+        .map((item) => {
+          return {
+            request: item,
+            path: item.k2.metadata.path,
+            folder: path.dirname(item.k2.metadata.path),
+            template: resolveTemplate(inventory, item.k2.body.template),
+          };
+        })
+        .filter((item) => item.template !== undefined)
+        .filter((item) => item.path !== undefined)
+        .map(
+          async (item) =>
+            await applyTemplate(
+              item.folder,
+              item.request,
+              inventory.inventory,
+              item.template
+            )
+        );
+
+      await Promise.all(allRequests);
+    };
+    run().catch((e) => {
+      console.error(e);
+      process.exit(1);
+    });
+  });
+  return program;
 }
 
 async function applyTemplate(
@@ -61,6 +83,7 @@ async function applyTemplate(
       };
     })
     .filter((item) => item.sourcePath !== template.k2.metadata.path);
+
   await Promise.all(
     allCopies
       .filter((item) => item.isDirectory)

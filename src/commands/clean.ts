@@ -8,25 +8,39 @@ import { IK2Apply } from "../types/IK2Apply";
 import { templateApplyKind } from "../inventory/kinds";
 import { resolveTemplate } from "../inventory/template";
 import { exec } from "../helpers/exec";
-export default async function clean(inventory: Inventory): Promise<void> {
-  console.info("clean");
+import { Command } from "commander";
+import { getInventory } from "../inventory/getInventory";
+export default function clean(): Command {
+  const program = new Command("clean");
+  program.description("clean all elements in current inventory folder");
+  program.option(
+    "-i, --inventory <value>",
+    "inventory file",
+    path.join(process.cwd(), "k2.inventory.yaml")
+  );
+  program.action(async () => {
+    console.info("clean", program.opts());
+    const inventoryPath = program.getOptionValue("inventory");
+    const inventory = await getInventory(inventoryPath);
 
-  const allRequests = Array.from(inventory.sources.values())
-    .filter((item) => item.k2.metadata.kind === templateApplyKind)
-    .map((item) => item as IK2Apply)
-    .map((item) => {
-      return {
-        request: item,
-        path: item.k2.metadata.path,
-        folder: path.dirname(item.k2.metadata.path),
-        template: resolveTemplate(inventory, item.k2.body.template),
-      };
-    })
-    .filter((item) => item.template !== undefined && item.path !== undefined)
-    .map(async (item) => await cleanTemplate(item.template, item.folder));
+    const allRequests = Array.from(inventory.sources.values())
+      .filter((item) => item.k2.metadata.kind === templateApplyKind)
+      .map((item) => item as IK2Apply)
+      .map((item) => {
+        return {
+          request: item,
+          path: item.k2.metadata.path,
+          folder: path.dirname(item.k2.metadata.path),
+          template: resolveTemplate(inventory, item.k2.body.template),
+        };
+      })
+      .filter((item) => item.template !== undefined && item.path !== undefined)
+      .map((item) => cleanTemplate(item.template, item.folder));
 
-  await Promise.all(allRequests);
-  await cleanupRefs(inventory);
+    await Promise.all(allRequests);
+    await cleanupRefs(inventory);
+  });
+  return program;
 }
 
 async function cleanTemplate(
