@@ -67,7 +67,7 @@ export default function create(): Command {
       process.cwd(),
       applyK2,
       inventory,
-      templateK2,
+      Promise.resolve(templateK2),
       false
     );
     while (needReapply) {
@@ -75,7 +75,7 @@ export default function create(): Command {
         process.cwd(),
         applyK2,
         inventory,
-        templateK2
+        Promise.resolve(templateK2)
       );
     }
     console.info("created");
