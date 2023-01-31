@@ -1,0 +1,14 @@
+k2:
+  metadata:
+    id: k2.cli.create
+    kind: "template"
+  body:
+    name: "create"
+    parameters:
+      namespace: "k2.cli.my"
+      title: "My K2 Project"
+    scripts:
+      bootstrap:
+        - echo "template boot"
+      post:
+        - echo "template fin"

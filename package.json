@@ -5,6 +5,7 @@
   "main": "./dist/index.js",
   "bin": "./dist/index.js",
   "files": [
+    "create/",
     "dist/",
     "LICENSE",
     "README.md",
@@ -26,6 +27,7 @@
     "samples:clean": "npm run build && node . clean --inventory ./samples/k2.inventory.yaml",
     "samples:apply": "npm run build && node . apply --inventory ./samples/k2.inventory.yaml",
     "samples:list": "npm run build && node .  list --inventory ./samples/k2.inventory.yaml",
+    "samples:create": "npm run build && mkdir -p ./init && cd ./init && node .. create",
     "samples:help": "npm run build && node . --help"
   },
   "repository": {
