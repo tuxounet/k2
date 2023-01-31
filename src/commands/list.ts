@@ -1,8 +1,8 @@
 import path from "path";
 import { Command } from "commander";
-import { getInventory } from "../inventory/getInventory";
 import { INode } from "../types/map/INode";
 import { idName, idNs, idRoot, idVersion } from "../helpers/namespace";
+import { getInventory } from "../inventory/Inventory";
 export default function list(): Command {
   const program = new Command("list");
   program.description("list all elements in current inventory folder");

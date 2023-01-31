@@ -8,7 +8,8 @@ import { IK2Apply } from "../types/IK2Apply";
 import { templateApplyKind } from "../inventory/kinds";
 import { resolveTemplate } from "../inventory/template";
 import { Command } from "commander";
-import { getInventory } from "../inventory/getInventory";
+import { getInventory } from "../inventory/Inventory";
+import { executeScript } from "../inventory/scripts";
 
 export default function apply(): Command {
   const program = new Command("apply");
@@ -19,7 +20,7 @@ export default function apply(): Command {
     "inventory file",
     path.join(process.cwd(), "k2.inventory.yaml")
   );
-  program.action(async (inventoryPath: string) => {
+  program.action(async () => {
     const run = async (): Promise<void> => {
       let reapply = await doApply(program.getOptionValue("inventory"));
       while (reapply) {
@@ -76,6 +77,12 @@ async function applyTemplate(
   template: IK2Template
 ): Promise<boolean> {
   console.info("apply template", destinationFolder);
+
+  await executeScript(template, "bootstrap", destinationFolder);
+  await executeScript(request, "bootstrap", destinationFolder);
+
+  await executeScript(template, "pre", destinationFolder);
+  await executeScript(request, "pre", destinationFolder);
 
   const allTemplateFiles = await fg(["**/*", "**/.gitignore"], {
     markDirectories: true,
@@ -163,6 +170,8 @@ async function applyTemplate(
       });
     }
   }
+  await executeScript(template, "post", destinationFolder);
+  await executeScript(request, "post", destinationFolder);
 
   return notExistingSubApplies.length > 0;
 }

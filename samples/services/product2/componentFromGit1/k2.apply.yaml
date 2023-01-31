@@ -9,6 +9,12 @@ k2:
         repository: https://github.com/tuxounet/k2.git
         branch: main
         path: samples/templates/fromGit1/k2.template.yaml
+    scripts:
+      bootstrap:
+        - echo "boot"
+      post:
+        - echo "fin"
+
     vars:
       name: "component2"
       description: "Template of type kind1"

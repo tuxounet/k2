@@ -7,3 +7,8 @@ k2:
     parameters:
       name: "kind1"
       description: "Template of type kind1"
+    scripts:
+      bootstrap:
+        - echo "template boot"
+      post:
+        - echo "template fin"

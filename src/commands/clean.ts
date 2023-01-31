@@ -1,4 +1,4 @@
-import { Inventory } from "../inventory/Inventory";
+import { getInventory, Inventory } from "../inventory/Inventory";
 import path from "path";
 import fs from "fs";
 import fg from "fast-glob";
@@ -7,7 +7,7 @@ import { IK2Apply } from "../types/IK2Apply";
 import { templateApplyKind } from "../inventory/kinds";
 import { exec } from "../helpers/exec";
 import { Command } from "commander";
-import { getInventory } from "../inventory/getInventory";
+
 export default function clean(): Command {
   const program = new Command("clean");
   program.description("clean all elements in current inventory folder");
