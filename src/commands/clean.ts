@@ -1,4 +1,3 @@
-import { IK2Template } from "../types/IK2Template";
 import { Inventory } from "../inventory/Inventory";
 import path from "path";
 import fs from "fs";
@@ -6,7 +5,6 @@ import fg from "fast-glob";
 import childProc from "child_process";
 import { IK2Apply } from "../types/IK2Apply";
 import { templateApplyKind } from "../inventory/kinds";
-import { resolveTemplate } from "../inventory/template";
 import { exec } from "../helpers/exec";
 import { Command } from "commander";
 import { getInventory } from "../inventory/getInventory";
@@ -34,7 +32,7 @@ export default function clean(): Command {
         };
       })
       .filter((item) => item.path !== undefined)
-      .map((item) => cleanTemplate(item.folder));
+      .map(async (item) => await cleanTemplate(item.folder));
 
     await Promise.all(allRequests);
     await cleanupRefs(inventory);

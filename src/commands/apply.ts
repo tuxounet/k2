@@ -20,9 +20,9 @@ export default function apply(): Command {
     path.join(process.cwd(), "k2.inventory.yaml")
   );
   program.action(async (inventoryPath: string) => {
-    const run = async () => {
+    const run = async (): Promise<void> => {
       let reapply = await doApply(program.getOptionValue("inventory"));
-      while (reapply === true) {
+      while (reapply) {
         reapply = await doApply(program.getOptionValue("inventory"));
       }
     };
@@ -62,7 +62,7 @@ async function doApply(inventoryPath: string): Promise<boolean> {
     );
 
   const results = await Promise.all(allRequests);
-  if (results.filter((item) => item === true).length > 0) {
+  if (results.filter((item) => item).length > 0) {
     console.warn("need reapply");
     return true;
   }

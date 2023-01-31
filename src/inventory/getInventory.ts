@@ -1,7 +1,7 @@
 import path from "path";
 import fs from "fs";
 import { Inventory } from "./Inventory";
-export async function getInventory(inventoryPath: string) {
+export async function getInventory(inventoryPath: string): Promise<Inventory> {
   if (!fs.existsSync(inventoryPath)) {
     throw new Error(
       "current folder doesn't contains k2.inventor.yaml file at " +

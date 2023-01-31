@@ -18,7 +18,6 @@ export class Inventory {
     ) as IK2Inventory;
     this.inventory.k2.metadata.folder = path.dirname(this.inventory_path);
     this.inventory.k2.metadata.path = this.inventory_path;
-    console.dir(this);
     this.sources = new Map();
     this.templates = new Map();
 
