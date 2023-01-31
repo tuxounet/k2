@@ -11,8 +11,9 @@ export default function create(): Command {
   program.description("create init k2 inventory folder in current directory");
 
   program.action(async () => {
+    const cwd = path.resolve(process.cwd());
     console.info("create", {
-      cwd: process.cwd(),
+      cwd,
     });
 
     const inventory: IK2Inventory = {
@@ -20,8 +21,8 @@ export default function create(): Command {
         metadata: {
           id: "k2.cli.create.inventory",
           kind: "inventory",
-          folder: process.cwd(),
-          path: path.resolve(process.cwd(), "k2.inventory.yaml"),
+          folder: cwd,
+          path: path.resolve(cwd, "k2.inventory.yaml"),
         },
         body: {
           folders: {
@@ -37,10 +38,10 @@ export default function create(): Command {
 
     const applyK2 = loadK2File<IK2Apply>(applyFilePath);
 
-    const template = resolveTemplate(process.cwd(), applyK2.k2.body.template);
+    const template = resolveTemplate(cwd, applyK2.k2.body.template);
 
     let needReapply = await applyTemplate(
-      process.cwd(),
+      cwd,
       applyK2,
       inventory,
       Promise.resolve(template),
@@ -48,7 +49,7 @@ export default function create(): Command {
     );
     while (needReapply) {
       needReapply = await applyTemplate(
-        process.cwd(),
+        cwd,
         applyK2,
         inventory,
         Promise.resolve(template)
