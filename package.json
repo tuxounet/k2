@@ -46,10 +46,9 @@
     "url": "https://github.com/tuxounet/k2/issues"
   },
   "homepage": "https://github.com/tuxounet/k2#readme",
-  "dependencies": {
-    "commander": "^10.0.0"
-  },
+  "dependencies": {},
   "devDependencies": {
+    "commander": "^10.0.0",
     "@rollup/plugin-commonjs": "^23.0.2",
     "@rollup/plugin-json": "^5.0.1",
     "@rollup/plugin-node-resolve": "^15.0.1",
