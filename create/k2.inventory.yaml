@@ -1,0 +1,15 @@
+k2:
+  metadata:
+    id: "<%= namespace%>.inventory"
+    kind: inventory
+  body:
+    folders:
+      ignore: []
+      templates:
+        - templates/**/k2.*.yaml
+      applies:
+        - services/**/k2.*.yaml
+
+    vars:
+      title: "<%= title %>"
+      namespace: "<%= namespace %>"

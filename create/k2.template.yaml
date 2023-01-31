@@ -1,12 +1,12 @@
 k2:
   metadata:
-    id: k2.cli.sample.templates.kind1
+    id: k2.cli.create
     kind: "template"
   body:
-    name: "kind1"
+    name: "create"
     parameters:
-      name: "kind1"
-      description: "Template of type kind1"
+      namespace: "k2.cli.my"
+      title: "My K2 Project"
     scripts:
       bootstrap:
         - echo "template boot"

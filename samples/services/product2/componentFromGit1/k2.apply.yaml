@@ -1,14 +1,20 @@
 k2:
   metadata:
-    id: k2.cli.sample.services.componentFromGit1
+    id: k2.cli.sample.services.product2.componentFromGit1
     kind: template-apply
   body:
     template:
       source: git
       params:
         repository: https://github.com/tuxounet/k2.git
-        branch: 0.0.7
+        branch: main
         path: samples/templates/fromGit1/k2.template.yaml
+    scripts:
+      bootstrap:
+        - echo "boot"
+      post:
+        - echo "fin"
+
     vars:
       name: "component2"
       description: "Template of type kind1"

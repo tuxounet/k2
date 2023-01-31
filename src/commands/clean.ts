@@ -1,39 +1,47 @@
-import { IK2Template } from "../types/IK2Template";
-import { Inventory } from "../inventory/Inventory";
+import { getInventory, Inventory } from "../inventory/Inventory";
 import path from "path";
 import fs from "fs";
 import fg from "fast-glob";
 import childProc from "child_process";
 import { IK2Apply } from "../types/IK2Apply";
 import { templateApplyKind } from "../inventory/kinds";
-import { resolveTemplate } from "../inventory/template";
 import { exec } from "../helpers/exec";
-export default async function clean(inventory: Inventory): Promise<void> {
-  console.info("clean");
+import { Command } from "commander";
 
-  const allRequests = Array.from(inventory.sources.values())
-    .filter((item) => item.k2.metadata.kind === templateApplyKind)
-    .map((item) => item as IK2Apply)
-    .map((item) => {
-      return {
-        request: item,
-        path: item.k2.metadata.path,
-        folder: path.dirname(item.k2.metadata.path),
-        template: resolveTemplate(inventory, item.k2.body.template),
-      };
-    })
-    .filter((item) => item.template !== undefined && item.path !== undefined)
-    .map(async (item) => await cleanTemplate(item.template, item.folder));
+export default function clean(): Command {
+  const program = new Command("clean");
+  program.description("clean all elements in current inventory folder");
+  program.option(
+    "-i, --inventory <value>",
+    "inventory file",
+    path.join(process.cwd(), "k2.inventory.yaml")
+  );
+  program.action(async () => {
+    console.info("clean", program.opts());
+    const inventoryPath = program.getOptionValue("inventory");
+    const inventory = await getInventory(inventoryPath);
 
-  await Promise.all(allRequests);
-  await cleanupRefs(inventory);
+    const allRequests = Array.from(inventory.sources.values())
+      .filter((item) => item.k2.metadata.kind === templateApplyKind)
+      .map((item) => item as IK2Apply)
+      .map((item) => {
+        return {
+          request: item,
+          path: item.k2.metadata.path,
+          folder: path.dirname(item.k2.metadata.path),
+        };
+      })
+      .filter((item) => item.path !== undefined)
+      .map(async (item) => await cleanTemplate(item.folder));
+
+    await Promise.all(allRequests);
+    await cleanupRefs(inventory);
+  });
+  return program;
 }
 
-async function cleanTemplate(
-  template: IK2Template,
-  destinationFolder: string
-): Promise<void> {
-  console.info("cleaning folder", template.k2.body.name, destinationFolder);
+async function cleanTemplate(destinationFolder: string): Promise<void> {
+  console.info("cleaning folder", destinationFolder);
   const allTemplatedFiles = await fg(["**/*", "**/.*"], {
     markDirectories: true,
     onlyFiles: false,
@@ -58,8 +66,11 @@ async function cleanTemplate(
 }
 
 async function cleanupRefs(inventory: Inventory): Promise<void> {
-  const templateRefs = path.join(inventory.inventoryFolder, "refs");
+  const templateRefs = path.join(
+    inventory.inventory.k2.metadata.folder,
+    "refs"
+  );
   if (fs.existsSync(templateRefs)) {
-    exec(`rm -rf ${templateRefs}`, inventory.inventoryFolder);
+    exec(`rm -rf ${templateRefs}`, inventory.inventory.k2.metadata.folder);
   }
 }

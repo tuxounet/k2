@@ -5,25 +5,38 @@ import jsYaml from "js-yaml";
 import { IK2 } from "../types/IK2";
 import { IK2Inventory } from "../types/IK2Inventory";
 import { IK2Template } from "../types/IK2Template";
-import applyCommand from "../commands/apply";
-import cleanCommand from "../commands/clean";
-import listCommand from "../commands/list";
+
 import { inventoryKind } from "./kinds";
 
+export async function getInventory(inventoryPath: string): Promise<Inventory> {
+  if (!fs.existsSync(inventoryPath)) {
+    throw new Error(
+      "current folder doesn't contains k2.inventor.yaml file at " +
+        inventoryPath
+    );
+  }
+
+  const inventoryFolder = path.dirname(inventoryPath);
+  const inventoryFilename = path.basename(inventoryPath);
+  const inventory = new Inventory(inventoryFilename, inventoryFolder);
+
+  await inventory.load();
+
+  return inventory;
+}
+
 export class Inventory {
-  constructor(
-    readonly inventoryFilename: string,
-    readonly inventoryFolder: string
-  ) {
-    this.inventory_path = path.join(inventoryFolder, inventoryFilename);
+  constructor(inventoryFilename: string, inventoryFolder: string) {
+    this.inventory_path = path.resolve(inventoryFolder, inventoryFilename);
     this.inventory = jsYaml.load(
-      fs.readFileSync(path.join(this.inventoryFolder, this.inventoryFilename), {
+      fs.readFileSync(this.inventory_path, {
         encoding: "utf-8",
       })
     ) as IK2Inventory;
+    this.inventory.k2.metadata.folder = path.dirname(this.inventory_path);
+    this.inventory.k2.metadata.path = this.inventory_path;
     this.sources = new Map();
     this.templates = new Map();
-    this.allowedCommands = new Map();
 
     this.env = process.env.K2_ENV ?? "local";
   }
@@ -33,10 +46,10 @@ export class Inventory {
   inventory: IK2Inventory;
   sources: Map<string, IK2>;
   templates: Map<string, IK2Template>;
-  allowedCommands: Map<string, Function>;
+
   async load(): Promise<void> {
     const sourcesGlob = [
-      this.inventoryFilename,
+      "k2.inventory.yaml",
       ...this.inventory.k2.body.folders.applies,
     ];
     this.sources = await this.loadK2Files(sourcesGlob);
@@ -50,13 +63,6 @@ export class Inventory {
 
     const templatesGlob = [...this.inventory.k2.body.folders.templates];
     this.templates = await this.loadK2Files<IK2Template>(templatesGlob);
-  }
-
-  async loadCommands(): Promise<void> {
-    this.allowedCommands = new Map();
-    this.allowedCommands.set("apply", applyCommand);
-    this.allowedCommands.set("clean", cleanCommand);
-    this.allowedCommands.set("list", listCommand);
   }
 
   loadK2File<T extends IK2>(filePath: string): T {
@@ -77,18 +83,21 @@ export class Inventory {
 
     const sourcesEntries = await fg(searchGlob, {
       onlyFiles: true,
-      cwd: this.inventoryFolder,
+      cwd: this.inventory.k2.metadata.folder,
       ignore: this.inventory.k2.body.folders.ignore,
     });
 
     sourcesEntries
       .map((item) => {
         return {
-          path: path.join(this.inventoryFolder, item),
+          path: path.join(this.inventory.k2.metadata.folder, item),
           body: jsYaml.load(
-            fs.readFileSync(path.join(this.inventoryFolder, item), {
-              encoding: "utf-8",
-            })
+            fs.readFileSync(
+              path.join(this.inventory.k2.metadata.folder, item),
+              {
+                encoding: "utf-8",
+              }
+            )
           ) as IK2,
         };
       })
