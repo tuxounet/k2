@@ -3,7 +3,7 @@ import childProc from "child_process";
 export async function exec(cmd: string, cwd: string): Promise<number> {
   console.debug("exec async", cmd, "inside", cwd);
   return await new Promise<number>((resolve, reject) => {
-    const ps = childProc.exec(cmd, {
+    const ps = childProc.exec(String(cmd), {
       encoding: "utf-8",
       cwd,
     });
