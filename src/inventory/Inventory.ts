@@ -1,12 +1,12 @@
 import fs from "fs";
 import path from "path";
-import fg from "fast-glob";
 import jsYaml from "js-yaml";
 import { IK2 } from "../types/IK2";
 import { IK2Inventory } from "../types/IK2Inventory";
 import { IK2Template } from "../types/IK2Template";
 
 import { inventoryKind } from "./kinds";
+import { loadManyK2Files } from "./files";
 
 export async function getInventory(inventoryPath: string): Promise<Inventory> {
   if (!fs.existsSync(inventoryPath)) {
@@ -52,7 +52,7 @@ export class Inventory {
       "k2.inventory.yaml",
       ...this.inventory.k2.body.folders.applies,
     ];
-    this.sources = await this.loadK2Files(sourcesGlob);
+    this.sources = await this.mapK2Files(sourcesGlob);
     const inventory = Array.from(this.sources.values()).find(
       (item) => item.k2.metadata.kind === inventoryKind
     );
@@ -62,54 +62,22 @@ export class Inventory {
     this.inventory = inventory as IK2Inventory;
 
     const templatesGlob = [...this.inventory.k2.body.folders.templates];
-    this.templates = await this.loadK2Files<IK2Template>(templatesGlob);
+    this.templates = await this.mapK2Files<IK2Template>(templatesGlob);
   }
 
-  loadK2File<T extends IK2>(filePath: string): T {
-    const item = jsYaml.load(
-      fs.readFileSync(filePath, {
-        encoding: "utf-8",
-      })
-    ) as T;
-    item.k2.metadata.path = filePath;
-    item.k2.metadata.folder = path.dirname(filePath);
-    return item;
-  }
-
-  private async loadK2Files<T extends IK2>(
+  private async mapK2Files<T extends IK2>(
     searchGlob: string[]
   ): Promise<Map<string, T>> {
     const sources = new Map<string, T>();
 
-    const sourcesEntries = await fg(searchGlob, {
-      onlyFiles: true,
-      cwd: this.inventory.k2.metadata.folder,
-      ignore: this.inventory.k2.body.folders.ignore,
+    const sourcesEntries = await loadManyK2Files(
+      searchGlob,
+      this.inventory.k2.metadata.folder,
+      this.inventory.k2.body.folders.ignore
+    );
+    sourcesEntries.forEach((item) => {
+      sources.set(item.k2.metadata.id, item as T);
     });
-
-    sourcesEntries
-      .map((item) => {
-        return {
-          path: path.join(this.inventory.k2.metadata.folder, item),
-          body: jsYaml.load(
-            fs.readFileSync(
-              path.join(this.inventory.k2.metadata.folder, item),
-              {
-                encoding: "utf-8",
-              }
-            )
-          ) as IK2,
-        };
-      })
-      .map((item) => {
-        item.body.k2.metadata.path = item.path;
-        item.body.k2.metadata.folder = path.dirname(item.path);
-        return item;
-      })
-      .filter((item) => item.body.k2.metadata.kind)
-      .forEach((item) => {
-        sources.set(item.body.k2.metadata.id, item.body as T);
-      });
 
     return sources;
   }

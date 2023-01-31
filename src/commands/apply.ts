@@ -41,7 +41,7 @@ async function doApply(inventoryPath: string): Promise<boolean> {
         request: item,
         path: item.k2.metadata.path,
         folder: path.dirname(item.k2.metadata.path),
-        template: resolveTemplate(inventory, item.k2.body.template),
+        template: resolveTemplate(inventoryPath, item.k2.body.template),
       };
     })
     .filter((item) => item.template !== undefined)

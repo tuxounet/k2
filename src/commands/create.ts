@@ -1,10 +1,8 @@
-import { IK2Template } from "../types/IK2Template";
 import path from "path";
 import { IK2Inventory } from "../types/IK2Inventory";
 import { IK2Apply } from "../types/IK2Apply";
-import { applyTemplate } from "../inventory/template";
+import { applyTemplate, resolveTemplate } from "../inventory/template";
 import { Command } from "commander";
-import { loadK2File } from "../inventory/files";
 
 export default function create(): Command {
   const program = new Command("create");
@@ -12,18 +10,10 @@ export default function create(): Command {
   program.description("create init k2 inventory folder in current directory");
 
   program.action(async () => {
-    const templateCreateTemplate = path.resolve(
-      __dirname,
-      "..",
-      "create",
-      "k2.template.yaml"
-    );
     console.info("create", {
       cwd: process.cwd(),
-      template: templateCreateTemplate,
     });
 
-    const templateK2 = loadK2File<IK2Template>(templateCreateTemplate);
     const inventory: IK2Inventory = {
       k2: {
         metadata: {
@@ -53,21 +43,24 @@ export default function create(): Command {
         body: {
           scripts: {},
           template: {
-            source: "inventory",
-
+            source: "git",
             params: {
-              id: "k2.cli.create.template",
+              repository:
+                "https://github.com/tuxounet/k2-blocks-structures.git",
+              branch: "dev",
+              path: "root/create-root/k2.template.yaml",
             },
           },
         },
       },
     };
+    const template = resolveTemplate(process.cwd(), applyK2.k2.body.template);
 
     let needReapply = await applyTemplate(
       process.cwd(),
       applyK2,
       inventory,
-      Promise.resolve(templateK2),
+      Promise.resolve(template),
       false
     );
     while (needReapply) {
@@ -75,7 +68,7 @@ export default function create(): Command {
         process.cwd(),
         applyK2,
         inventory,
-        Promise.resolve(templateK2)
+        Promise.resolve(template)
       );
     }
     console.info("created");
