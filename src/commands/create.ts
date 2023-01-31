@@ -3,6 +3,7 @@ import { IK2Inventory } from "../types/IK2Inventory";
 import { IK2Apply } from "../types/IK2Apply";
 import { applyTemplate, resolveTemplate } from "../inventory/template";
 import { Command } from "commander";
+import { loadK2File } from "../inventory/files";
 
 export default function create(): Command {
   const program = new Command("create");
@@ -32,28 +33,10 @@ export default function create(): Command {
       },
     };
 
-    const applyK2: IK2Apply = {
-      k2: {
-        metadata: {
-          id: "k2.cli.create.init",
-          kind: "template-apply",
-          folder: process.cwd(),
-          path: path.resolve(process.cwd(), "k2.apply.yaml"),
-        },
-        body: {
-          scripts: {},
-          template: {
-            source: "git",
-            params: {
-              repository:
-                "https://github.com/tuxounet/k2-blocks-structures.git",
-              branch: "dev",
-              path: "root/create-root/k2.template.yaml",
-            },
-          },
-        },
-      },
-    };
+    const applyFilePath = path.join(__dirname, "..", "create", "k2.apply.yaml");
+
+    const applyK2 = loadK2File<IK2Apply>(applyFilePath);
+
     const template = resolveTemplate(process.cwd(), applyK2.k2.body.template);
 
     let needReapply = await applyTemplate(
