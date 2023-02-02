@@ -8,14 +8,14 @@ import path from "path";
 import fg from "fast-glob";
 import ejs from "ejs";
 import { md5 } from "../helpers/hash";
-import { exec } from "../helpers/exec";
 import { IK2Apply } from "../types/IK2Apply";
 import { IK2Inventory } from "../types/IK2Inventory";
 import { executeScript } from "./scripts";
-export function resolveTemplate(
+import { exec } from "../helpers/exec";
+export async function resolveTemplate(
   inventory: Inventory,
   ref: IK2TemplateRef
-): IK2Template {
+): Promise<IK2Template> {
   switch (ref.source) {
     case "inventory": {
       const param = ref.params as IK2TemplateRefInventoryParams;
@@ -23,7 +23,7 @@ export function resolveTemplate(
       if (template == null) {
         throw new Error(`template introuvable dans l'inventaire ${param.id}`);
       }
-      return template;
+      return await template;
     }
     case "git": {
       const param = ref.params as IK2TemplateRefGitParams;
@@ -31,7 +31,7 @@ export function resolveTemplate(
       if (template == null) {
         throw new Error(`template non résolu ${param.repository}`);
       }
-      return template;
+      return await template;
     }
     default:
       throw new Error(`source de template non trouvé ${String(ref.source)}`);
@@ -42,11 +42,11 @@ export async function applyTemplate(
   destinationFolder: string,
   request: IK2Apply,
   inventory: IK2Inventory,
-  template: IK2Template,
+  templatePromise: Promise<IK2Template>,
   produceGitIgnore: boolean = true
 ): Promise<boolean> {
   console.info("apply template", destinationFolder);
-
+  const template = await templatePromise;
   await executeScript(template, "bootstrap", destinationFolder);
   await executeScript(request, "bootstrap", destinationFolder);
 
@@ -150,10 +150,10 @@ export async function applyTemplate(
   return notExistingSubApplies.length > 0;
 }
 
-function resolveInventoryTemplate(
+async function resolveInventoryTemplate(
   inventory: Inventory,
   refParams: IK2TemplateRefInventoryParams
-): IK2Template {
+): Promise<IK2Template> {
   console.info("resolveInventoryTemplate", refParams);
   const template = inventory.templates.get(refParams.id);
   if (template === undefined) {
@@ -164,10 +164,10 @@ function resolveInventoryTemplate(
   return template;
 }
 
-function resolveGitTemplate(
+async function resolveGitTemplate(
   inventory: Inventory,
   refParams: IK2TemplateRefGitParams
-): IK2Template {
+): Promise<IK2Template> {
   console.info("resolveGitTemplate", refParams);
 
   const id = md5(
@@ -183,7 +183,7 @@ function resolveGitTemplate(
     id
   );
   if (!fs.existsSync(templateRefPath)) {
-    exec(
+    await exec(
       `git clone  ${
         refParams.branch !== undefined
           ? `--branch ${refParams.branch} --single-branch`
@@ -192,7 +192,7 @@ function resolveGitTemplate(
       inventory.inventory.k2.metadata.folder
     );
   } else {
-    exec(`git pull`, templateRefPath);
+    await exec(`git pull`, templateRefPath);
   }
 
   const targetPath = templateRefPath + "/" + refParams.path;

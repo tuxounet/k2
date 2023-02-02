@@ -71,6 +71,9 @@ async function cleanupRefs(inventory: Inventory): Promise<void> {
     "refs"
   );
   if (fs.existsSync(templateRefs)) {
-    exec(`rm -rf ${templateRefs}`, inventory.inventory.k2.metadata.folder);
+    await exec(
+      `rm -rf ${templateRefs}`,
+      inventory.inventory.k2.metadata.folder
+    );
   }
 }

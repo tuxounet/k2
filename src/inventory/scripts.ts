@@ -15,6 +15,6 @@ export async function executeScript(
 
   console.info("exec script", script, "from", askedBy.k2.metadata.id);
   for (const line of scriptValue) {
-    exec(line, cwd);
+    await exec(line, cwd);
   }
 }

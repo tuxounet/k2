@@ -7,8 +7,7 @@ k2:
     parameters:
       namespace: "k2.cli.my"
       title: "My K2 Project"
+      version: "0.0.1"
     scripts:
-      bootstrap:
-        - echo "template boot"
       post:
-        - echo "template fin"
+        - "npm install"
