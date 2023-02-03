@@ -8,16 +8,19 @@ import { IK2Template } from "../types/IK2Template";
 import { inventoryKind } from "./kinds";
 import { loadManyK2Files } from "./files";
 
-export async function getInventory(inventoryPath: string): Promise<Inventory> {
-  if (!fs.existsSync(inventoryPath)) {
+export async function getInventory(
+  sourceInventoryFile: string
+): Promise<Inventory> {
+  const inventoryFile = path.resolve(sourceInventoryFile);
+  if (!fs.existsSync(inventoryFile)) {
     throw new Error(
       "current folder doesn't contains k2.inventor.yaml file at " +
-        inventoryPath
+        inventoryFile
     );
   }
 
-  const inventoryFolder = path.dirname(inventoryPath);
-  const inventoryFilename = path.basename(inventoryPath);
+  const inventoryFolder = path.dirname(inventoryFile);
+  const inventoryFilename = path.basename(inventoryFile);
   const inventory = new Inventory(inventoryFilename, inventoryFolder);
 
   await inventory.load();
@@ -27,14 +30,15 @@ export async function getInventory(inventoryPath: string): Promise<Inventory> {
 
 export class Inventory {
   constructor(inventoryFilename: string, inventoryFolder: string) {
-    this.inventory_path = path.resolve(inventoryFolder, inventoryFilename);
+    console.info("ctor", arguments);
+    this.inventoryFilePath = path.resolve(inventoryFolder, inventoryFilename);
     this.inventory = jsYaml.load(
-      fs.readFileSync(this.inventory_path, {
+      fs.readFileSync(this.inventoryFilePath, {
         encoding: "utf-8",
       })
     ) as IK2Inventory;
-    this.inventory.k2.metadata.folder = path.dirname(this.inventory_path);
-    this.inventory.k2.metadata.path = this.inventory_path;
+    this.inventory.k2.metadata.folder = path.dirname(this.inventoryFilePath);
+    this.inventory.k2.metadata.path = this.inventoryFilePath;
     this.sources = new Map();
     this.templates = new Map();
 
@@ -42,7 +46,7 @@ export class Inventory {
   }
 
   readonly env: string;
-  readonly inventory_path: string;
+  readonly inventoryFilePath: string;
   inventory: IK2Inventory;
   sources: Map<string, IK2>;
   templates: Map<string, IK2Template>;

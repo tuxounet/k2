@@ -4,14 +4,19 @@ import path from "path";
 import jsYaml from "js-yaml";
 import fg from "fast-glob";
 export function loadK2File<T extends IK2>(filePath: string): T {
-  const item = jsYaml.load(
-    fs.readFileSync(filePath, {
-      encoding: "utf-8",
-    })
-  ) as T;
-  item.k2.metadata.path = filePath;
-  item.k2.metadata.folder = path.dirname(filePath);
-  return item;
+  try {
+    const item = jsYaml.load(
+      fs.readFileSync(filePath, {
+        encoding: "utf-8",
+      })
+    ) as T;
+    item.k2.metadata.path = filePath;
+    item.k2.metadata.folder = path.dirname(filePath);
+    return item;
+  } catch (e) {
+    console.error("file format error", filePath);
+    throw e;
+  }
 }
 
 export async function loadManyK2Files<T extends IK2>(
@@ -31,11 +36,6 @@ export async function loadManyK2Files<T extends IK2>(
         path: item,
         body: loadK2File<T>(item),
       };
-    })
-    .map((item) => {
-      item.body.k2.metadata.path = item.path;
-      item.body.k2.metadata.folder = path.dirname(item.path);
-      return item;
     })
     .filter((item) => item.body.k2.metadata.kind)
     .map((item) => item.body);

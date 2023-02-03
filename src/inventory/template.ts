@@ -155,7 +155,9 @@ async function resolveInventoryTemplate(
   inventoryFolder: string,
   refParams: IK2TemplateRefInventoryParams
 ): Promise<IK2Template> {
-  const inventory = await getInventory(inventoryFolder);
+  const inventory = await getInventory(
+    path.resolve(inventoryFolder, "k2.inventory.yaml")
+  );
   console.info("resolveInventoryTemplate", refParams);
   const template = inventory.templates.get(refParams.id);
   if (template === undefined) {
