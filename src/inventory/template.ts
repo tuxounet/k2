@@ -43,11 +43,11 @@ export async function applyTemplate(
   destinationFolder: string,
   request: IK2Apply,
   inventory: IK2Inventory,
-  templatePromise: Promise<IK2Template>,
+  template: IK2Template,
   produceGitIgnore: boolean = true
 ): Promise<boolean> {
   console.info("apply template", destinationFolder);
-  const template = await templatePromise;
+
   await executeScript(template, "bootstrap", destinationFolder);
   await executeScript(request, "bootstrap", destinationFolder);
 
