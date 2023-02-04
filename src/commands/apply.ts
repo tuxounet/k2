@@ -57,23 +57,18 @@ async function doApply(inventoryPath: string): Promise<boolean> {
     });
   }
 
-  allRequests
+  let needReapply = false;
+  for (const item of allRequests
     .filter((item) => item.template !== undefined)
-    .filter((item) => item.path !== undefined)
-    .map(
-      async (item) =>
-        await applyTemplate(
-          item.folder,
-          item.request,
-          inventory.inventory,
-          item.template
-        )
+    .filter((item) => item.path !== undefined)) {
+    const need = await applyTemplate(
+      item.folder,
+      item.request,
+      inventory.inventory,
+      item.template
     );
-
-  const results = await Promise.all(allRequests);
-  if (results.filter((item) => item).length > 0) {
-    console.warn("need reapply");
-    return true;
+    if (need === true) needReapply = true;
   }
-  return false;
+
+  return needReapply;
 }
