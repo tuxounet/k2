@@ -38,7 +38,7 @@ export default function create(): Command {
 
     const applyK2 = loadK2File<IK2Apply>(applyFilePath);
 
-    const template = resolveTemplate(cwd, applyK2.k2.body.template);
+    const template = await resolveTemplate(cwd, applyK2.k2.body.template);
 
     await applyTemplate(cwd, applyK2, inventory, template, false);
 

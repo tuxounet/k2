@@ -33,7 +33,7 @@ async function doApply(inventoryPath: string): Promise<boolean> {
   console.debug("do apply");
   const inventory = await getInventory(inventoryPath);
 
-  const allRequests = Array.from(inventory.sources.values())
+  const allRequestsQuery = Array.from(inventory.sources.values())
     .filter((item) => item.k2.metadata.kind === templateApplyKind)
     .map((item) => item as IK2Apply)
     .map((item) => {
@@ -41,12 +41,23 @@ async function doApply(inventoryPath: string): Promise<boolean> {
         request: item,
         path: item.k2.metadata.path,
         folder: path.dirname(item.k2.metadata.path),
-        template: resolveTemplate(
-          inventory.inventory.k2.metadata.folder,
-          item.k2.body.template
-        ),
+        templateRef: item.k2.body.template,
       };
-    })
+    });
+
+  const allRequests = [];
+  for (const request of allRequestsQuery) {
+    const template = await resolveTemplate(
+      inventory.inventory.k2.metadata.folder,
+      request.templateRef
+    );
+    allRequests.push({
+      ...request,
+      template,
+    });
+  }
+
+  allRequests
     .filter((item) => item.template !== undefined)
     .filter((item) => item.path !== undefined)
     .map(
