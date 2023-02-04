@@ -40,21 +40,8 @@ export default function create(): Command {
 
     const template = resolveTemplate(cwd, applyK2.k2.body.template);
 
-    let needReapply = await applyTemplate(
-      cwd,
-      applyK2,
-      inventory,
-      Promise.resolve(template),
-      false
-    );
-    while (needReapply) {
-      needReapply = await applyTemplate(
-        cwd,
-        applyK2,
-        inventory,
-        Promise.resolve(template)
-      );
-    }
+    await applyTemplate(cwd, applyK2, inventory, template, false);
+
     console.info("created");
   });
   return program;
