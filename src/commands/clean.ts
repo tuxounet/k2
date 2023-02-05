@@ -2,7 +2,6 @@ import { getInventory, Inventory } from "../inventory/Inventory";
 import path from "path";
 import fs from "fs";
 import fg from "fast-glob";
-import childProc from "child_process";
 import { IK2Apply } from "../types/IK2Apply";
 import { templateApplyKind } from "../inventory/kinds";
 import { exec } from "../helpers/exec";
@@ -55,14 +54,12 @@ async function cleanTemplate(destinationFolder: string): Promise<void> {
   const gitIgnorePath = path.join(destinationFolder, ".gitignore");
 
   const gitIgnoreContent = await fs.promises.readFile(gitIgnorePath, "utf-8");
-  gitIgnoreContent.split("\n").forEach((item) => {
+  gitIgnoreContent.split("\n").map(async (item) => {
     const targetContent = path.join(destinationFolder, item);
-    childProc.execSync("rm -rf " + targetContent);
+    await exec("rm -rf " + targetContent, destinationFolder);
   });
-  childProc.execSync("rm -rf .gitignore", { cwd: destinationFolder });
-  childProc.execSync("find . -empty -type d -delete", {
-    cwd: destinationFolder,
-  });
+  await exec("rm -rf .gitignore", destinationFolder);
+  await exec("find . -empty -type d -delete", destinationFolder);
 }
 
 async function cleanupRefs(inventory: Inventory): Promise<void> {

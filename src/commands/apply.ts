@@ -67,7 +67,7 @@ async function doApply(inventoryPath: string): Promise<boolean> {
       inventory.inventory,
       item.template
     );
-    if (need === true) needReapply = true;
+    if (need) needReapply = true;
   }
 
   return needReapply;
