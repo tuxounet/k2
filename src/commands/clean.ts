@@ -54,10 +54,12 @@ async function cleanTemplate(destinationFolder: string): Promise<void> {
   const gitIgnorePath = path.join(destinationFolder, ".gitignore");
 
   const gitIgnoreContent = await fs.promises.readFile(gitIgnorePath, "utf-8");
-  gitIgnoreContent.split("\n").map(async (item) => {
+  const ops = gitIgnoreContent.split("\n").map(async (item) => {
+    if (path.basename(item).startsWith("!")) return;
     const targetContent = path.join(destinationFolder, item);
     await exec("rm -rf " + targetContent, destinationFolder);
   });
+  await Promise.all(ops);
   await exec("rm -rf .gitignore", destinationFolder);
   await exec("find . -empty -type d -delete", destinationFolder);
 }
