@@ -55,7 +55,8 @@ async function cleanTemplate(destinationFolder: string): Promise<void> {
 
   const gitIgnoreContent = await fs.promises.readFile(gitIgnorePath, "utf-8");
   const ops = gitIgnoreContent.split("\n").map(async (item) => {
-    if (path.basename(item).startsWith("!")) return;
+    if (item.trim() === "") return;
+    if (item.trim().startsWith("!")) return;
     const targetContent = path.join(destinationFolder, item);
     await exec("rm -rf " + targetContent, destinationFolder);
   });
