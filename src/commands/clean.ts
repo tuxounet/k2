@@ -61,7 +61,8 @@ async function cleanTemplate(destinationFolder: string): Promise<void> {
     await exec("rm -rf " + targetContent, destinationFolder);
   });
   await Promise.all(ops);
-  await exec("rm -rf .gitignore", destinationFolder);
+  await exec("rm -f " + gitIgnorePath, destinationFolder);
+  await exec("rm -f **/.gitignore", destinationFolder);
   await exec("find . -empty -type d -delete", destinationFolder);
 }
 
