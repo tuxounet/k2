@@ -14,7 +14,7 @@ export async function exec(
       cmdSegments.splice(0, 1);
       args = cmdSegments;
     }
-    console.debug(">", executable, args, cwd);
+    console.debug(">", cwd, "|", executable, args.join(" "));
     const ps = childProc.execFile(executable, args, {
       encoding: "utf-8",
       cwd,

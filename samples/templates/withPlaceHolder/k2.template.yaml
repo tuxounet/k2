@@ -1,0 +1,9 @@
+k2:
+  metadata:
+    id: k2.cli.sample.templates.with-placeholder
+    kind: "template"
+  body:
+    name: "with-placeholder"
+    parameters:
+      name: "with-placeholder"
+      description: "Template with-placeholder"
