@@ -1,0 +1,13 @@
+k2:
+  metadata:
+    id: k2.cli.sample.services.product2.componentFromGit1
+    kind: template-apply
+  body:
+    template:
+      source: inventory
+      params:
+        id: k2.cli.sample.templates.with-placeholder
+
+    vars:
+      name: "component2"
+      description: "Template of type with-placeholder"

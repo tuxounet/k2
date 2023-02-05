@@ -30,7 +30,6 @@ export async function getInventory(
 
 export class Inventory {
   constructor(inventoryFilename: string, inventoryFolder: string) {
-    console.info("ctor", arguments);
     this.inventoryFilePath = path.resolve(inventoryFolder, inventoryFilename);
     this.inventory = jsYaml.load(
       fs.readFileSync(this.inventoryFilePath, {

@@ -58,6 +58,7 @@ export async function applyTemplate(
     ignore: ["k2.template.yaml"],
     markDirectories: true,
     onlyFiles: false,
+    dot: true,
     cwd: template.k2.metadata.folder,
   });
 
@@ -118,25 +119,36 @@ export async function applyTemplate(
   );
   if (produceGitIgnore) {
     const ignoreContent = [];
+    ignoreContent.push("!k2.apply.yaml");
     ignoreContent.push("!" + path.basename(request.k2.metadata.path));
+    const ignorePrefixes = allCopies
+      .filter((item) => item.filename === ".gitkeep")
+      .map((item) => path.dirname(item.item) + "/");
+
     ignoreContent.push(
-      ...allTemplateFiles
-        .filter((item) => !item.endsWith("/"))
-        .filter((item) => item !== ".gitignore")
+      ...allCopies
+        .filter((item) => !item.isDirectory)
+        .filter((item) => ![".gitkeep", ".gitignore"].includes(item.filename))
+
+        .filter(
+          (item) =>
+            ignorePrefixes.find((o) => o.startsWith(item.item)) === undefined
+        )
+        .map((item) => item.item)
     );
+
+    const ignoreBody = [...new Set(ignoreContent)];
 
     const ignorePath = path.join(destinationFolder, ".gitignore");
     if (!fs.existsSync(ignorePath)) {
-      fs.writeFileSync(ignorePath, ignoreContent.join("\n"), {
+      fs.writeFileSync(ignorePath, ignoreBody.join("\n"), {
         encoding: "utf-8",
       });
     } else {
       const body = fs.readFileSync(ignorePath, { encoding: "utf-8" });
       const lines = body.split("\n");
 
-      const appendContent = ignoreContent.filter(
-        (item) => !lines.includes(item)
-      );
+      const appendContent = ignoreBody.filter((item) => !lines.includes(item));
       if (appendContent.length > 0) {
         fs.appendFileSync(ignorePath, "\n" + appendContent.join("\n"), {
           encoding: "utf-8",
