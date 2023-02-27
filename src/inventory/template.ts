@@ -124,7 +124,6 @@ export async function applyTemplate(
     const ignorePrefixes = allCopies
       .filter((item) => item.filename === ".gitkeep")
       .map((item) => path.dirname(item.item) + "/");
-
     ignoreContent.push(
       ...allCopies
         .filter((item) => !item.isDirectory)
@@ -137,8 +136,9 @@ export async function applyTemplate(
         .map((item) => item.item)
     );
 
-    const ignoreBody = [...new Set(ignoreContent)];
+    ignoreContent.sort();
 
+    const ignoreBody = [...new Set(ignoreContent)];
     const ignorePath = path.join(destinationFolder, ".gitignore");
     if (!fs.existsSync(ignorePath)) {
       fs.writeFileSync(ignorePath, ignoreBody.join("\n"), {
