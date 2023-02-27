@@ -9,7 +9,7 @@ import create from "./commands/create";
 
 const packageJson = path.join(__dirname, "..", "package.json");
 const obj = JSON.parse(fs.readFileSync(packageJson, "utf-8"));
-console.warn("K2 by github:@tuxounet");
+console.warn("K2 Build System CLI by github:@tuxounet", obj.version);
 
 const program = new Command();
 program.version(obj.version).description("K2 Build System CLI");
