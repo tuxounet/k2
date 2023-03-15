@@ -1,4 +1,4 @@
-import { getInventory, Inventory } from "../inventory/Inventory";
+import { getInventory, Inventory } from "../inventory/inventory";
 import path from "path";
 import fs from "fs";
 import fg from "fast-glob";

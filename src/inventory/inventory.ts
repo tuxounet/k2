@@ -7,6 +7,8 @@ import { IK2Template } from "../types/IK2Template";
 
 import { inventoryKind } from "./kinds";
 import { loadManyK2Files } from "./files";
+import { INode } from "../types/map/INode";
+import { idName, idNs, idRoot, idVersion } from "../helpers/namespace";
 
 export async function getInventory(
   sourceInventoryFile: string
@@ -83,5 +85,57 @@ export class Inventory {
     });
 
     return sources;
+  }
+
+  toTree(): INode {
+    const allNodes = Array.from(this.sources.values()).map((item) => {
+      const node: INode = {
+        id: item.k2.metadata.id,
+        name: idName(item.k2.metadata.id),
+        namespace: idNs(item.k2.metadata.id),
+        kind: item.k2.metadata.kind,
+        version: idVersion(item.k2.metadata.version),
+      };
+
+      return node;
+    });
+
+    const allNamespaces = new Map<string, INode>();
+
+    const upsertNamespace = (ns: string): INode => {
+      const foundNs = allNamespaces.get(ns);
+      if (foundNs === undefined) {
+        const node: INode = {
+          id: ns,
+          name: idName(ns),
+          namespace: idNs(ns),
+          kind: "namespace",
+          version: "latest",
+          childs: [],
+        };
+        allNamespaces.set(ns, node);
+
+        if (node.namespace.trim() !== "" && node.name.trim() !== "") {
+          const nsNode = upsertNamespace(node.namespace);
+          if (nsNode.childs == null) nsNode.childs = [];
+          nsNode.childs.push(node);
+        }
+
+        return node;
+      }
+      return foundNs;
+    };
+
+    allNodes.forEach((item) => {
+      const nsNode = upsertNamespace(item.namespace);
+      if (nsNode.childs == null) nsNode.childs = [];
+      nsNode.childs.push(item);
+    });
+
+    const root = idRoot(this.inventory.k2.metadata.id);
+    const rootNode =
+      allNamespaces.get(root) ?? Array.from(allNamespaces.values())[0];
+
+    return rootNode;
   }
 }

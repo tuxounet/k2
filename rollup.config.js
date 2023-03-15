@@ -3,13 +3,14 @@ const typescript = require("@rollup/plugin-typescript");
 const shebang = require("rollup-plugin-preserve-shebang");
 const noderesolve = require("@rollup/plugin-node-resolve").default;
 const commonjs = require("@rollup/plugin-commonjs").default;
+const dts = require("rollup-plugin-dts").default;
 const pkg = require("./package.json");
 module.exports.default = [
   {
-    input: "src/index.ts",
-    external: Object.keys(pkg.dependencies),
+    input: "src/bin.ts",
+    external: pkg.dependencies ? Object.keys(pkg.dependencies) : [],
     output: {
-      file: "dist/index.js",
+      file: "dist/bin.js",
       format: "cjs",
       sourcemap: "inline",
     },
@@ -20,5 +21,25 @@ module.exports.default = [
       noderesolve(),
       json(),
     ],
+  },
+  {
+    input: "src/lib.ts",
+    external: pkg.dependencies ? Object.keys(pkg.dependencies) : [],
+    output: {
+      file: `dist/index.d.ts`,
+      sourcemap: "inline",
+      format: "es",
+    },
+    plugins: [dts()],
+  },
+  {
+    input: "src/lib.ts",
+    external: pkg.dependencies ? Object.keys(pkg.dependencies) : [],
+    output: {
+      file: `dist/index.js`,
+      sourcemap: "inline",
+      format: "es",
+    },
+    plugins: [typescript(), commonjs(), noderesolve(), json()],
   },
 ];

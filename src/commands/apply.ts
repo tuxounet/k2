@@ -3,7 +3,7 @@ import { IK2Apply } from "../types/IK2Apply";
 import { templateApplyKind } from "../inventory/kinds";
 import { applyTemplate, resolveTemplate } from "../inventory/template";
 import { Command } from "commander";
-import { getInventory } from "../inventory/Inventory";
+import { getInventory } from "../inventory/inventory";
 
 export default function apply(): Command {
   const program = new Command("apply");
