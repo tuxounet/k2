@@ -2,7 +2,7 @@ import { IK2Template } from "../types/IK2Template";
 import { IK2TemplateRef } from "../types/templates/IK2TemplateRef";
 import { IK2TemplateRefGitParams } from "../types/templates/IK2TemplateRefGitParams";
 import { IK2TemplateRefInventoryParams } from "../types/templates/IK2TemplateRefInventoryParams";
-import { getInventory } from "./Inventory";
+import { getInventory } from "./inventory";
 import fs from "fs";
 import path from "path";
 import fg from "fast-glob";
