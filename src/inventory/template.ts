@@ -104,6 +104,8 @@ export async function applyTemplate(
                 ...template.k2.body.parameters,
                 ...inventory.k2.body.vars,
                 ...request.k2.body.vars,
+                require,
+                sourcePath,
               },
               { async: true }
             );
@@ -196,10 +198,9 @@ async function resolveGitTemplate(
   const templateRefPath = path.join(inventoryFolder, "refs", id);
   if (!fs.existsSync(templateRefPath)) {
     await exec(
-      `git clone  ${
-        refParams.branch !== undefined
-          ? `--branch ${refParams.branch} --single-branch`
-          : ""
+      `git clone  ${refParams.branch !== undefined
+        ? `--branch ${refParams.branch} --single-branch`
+        : ""
       } ${refParams.repository} ${templateRefPath}`,
       inventoryFolder
     );
