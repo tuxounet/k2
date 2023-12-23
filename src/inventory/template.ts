@@ -105,7 +105,7 @@ export async function applyTemplate(
                 ...inventory.k2.body.vars,
                 ...request.k2.body.vars,
                 require,
-                sourcePath,
+                file: item,
               },
               { async: true }
             );
