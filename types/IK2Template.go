@@ -54,7 +54,7 @@ func (t *IK2Template) executeScript(target *IK2TemplateApply, script []string) e
 	fmt.Printf("template execute script: %v\n", script)
 
 	for _, line := range script {
-		err := libs.ExecCommand(line, target.K2.Metadata.Folder, t.K2.Body.Parameters)
+		err := libs.ExecCommand(line, target.K2.Metadata.Folder, libs.MergeMaps(t.K2.Body.Parameters, target.K2.Body.Vars))
 		if err != nil {
 			return fmt.Errorf("error executing script: %w", err)
 		}

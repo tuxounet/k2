@@ -5,6 +5,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/tuxounet/k2/libs"
 )
 
 type TemplatingStore struct {
@@ -78,7 +80,7 @@ func (t *TemplatingStore) ApplyTemplate(templateApplyId string, templateHash str
 	for source, destination := range copyMap {
 		fmt.Println("copy", source, destination)
 
-		err = copyFile(source, destination, apply.K2.Body.Vars)
+		err = copyFile(source, destination, libs.MergeMaps(template.K2.Body.Parameters, apply.K2.Body.Vars))
 		if err != nil {
 			return false, err
 		}
