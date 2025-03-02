@@ -9,6 +9,8 @@ import (
 	"slices"
 	"strings"
 	"text/template"
+
+	"github.com/Masterminds/sprig/v3"
 )
 
 func executeScript(data interface{}, stage string, destinationFolder string) error {
@@ -68,7 +70,7 @@ func copyFile(src string, dest string, tplData any) error {
 		return err
 	}
 
-	tpl, err := template.New("template").Parse(string(source))
+	tpl, err := template.New("template").Funcs(sprig.FuncMap()).Parse(string(source))
 	if err != nil {
 		return err
 	}
