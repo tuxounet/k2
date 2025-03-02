@@ -4,6 +4,9 @@ run:
 build:
 	go build -o ./.out/k2 ./main.go
 
+test:
+	go test -v ./...
+
 plan:
 	go run ./main.go plan  --inventory ./samples/k2.inventory.yaml
 
