@@ -123,49 +123,55 @@ func (t *TemplatingStore) DestroyTemplate(templateApplyId string) error {
 	}
 
 	gitIgnoreFile := filepath.Join(folder, ".gitignore")
+	//if gitignore file exists, remove all files and folders listed in it
 
-	if _, err := os.Stat(gitIgnoreFile); os.IsExist(err) {
-		files, err := os.ReadFile(gitIgnoreFile)
+	if _, err := os.Stat(gitIgnoreFile); os.IsNotExist(err) {
+		return t.cleanupEmptyDirs(folder)
+	}
+
+	files, err := os.ReadFile(gitIgnoreFile)
+	if err != nil {
+		return err
+	}
+
+	lines := strings.Split(string(files), "\n")
+	lines = append(lines, ".gitignore")
+	for _, line := range lines {
+		if line == "" {
+			continue
+		}
+		if strings.HasPrefix(line, "!") {
+			continue
+		}
+
+		file := filepath.Join(folder, line)
+		if _, err := os.Stat(file); os.IsNotExist(err) {
+			continue
+		}
+
+		stat, err := os.Stat(file)
 		if err != nil {
 			return err
 		}
 
-		lines := strings.Split(string(files), "\n")
-		lines = append(lines, ".gitignore")
-		for _, line := range lines {
-			if line == "" {
-				continue
-			}
-			if strings.HasPrefix(line, "!") {
-				continue
-			}
-
-			file := filepath.Join(folder, line)
-			if _, err := os.Stat(file); os.IsNotExist(err) {
-				continue
-			}
-
-			stat, err := os.Stat(file)
+		if stat.IsDir() {
+			err = os.RemoveAll(file)
 			if err != nil {
 				return err
 			}
-
-			if stat.IsDir() {
-				err = os.RemoveAll(file)
-				if err != nil {
-					return err
-				}
-			} else {
-				err = os.Remove(file)
-				if err != nil {
-					return err
-				}
+		} else {
+			err = os.Remove(file)
+			if err != nil {
+				return err
 			}
 		}
 	}
 
+	return t.cleanupEmptyDirs(folder)
+}
+func (t *TemplatingStore) cleanupEmptyDirs(folder string) error {
 	var folders []string
-	err = filepath.Walk(folder, func(path string, info os.FileInfo, err error) error {
+	err := filepath.Walk(folder, func(path string, info os.FileInfo, err error) error {
 		if info.IsDir() {
 			folders = append(folders, path)
 		}
@@ -190,6 +196,5 @@ func (t *TemplatingStore) DestroyTemplate(templateApplyId string) error {
 			return err
 		}
 	}
-
 	return nil
 }
