@@ -112,6 +112,10 @@ func (t *TemplatingStore) DestroyTemplate(templateApplyId string) error {
 	if err != nil {
 		return err
 	}
+	err = apply.ExecuteNuke()
+	if err != nil {
+		return err
+	}
 
 	folder := apply.K2.Metadata.Folder
 	if _, err := os.Stat(folder); os.IsNotExist(err) {
@@ -120,44 +124,70 @@ func (t *TemplatingStore) DestroyTemplate(templateApplyId string) error {
 
 	gitIgnoreFile := filepath.Join(folder, ".gitignore")
 
-	if _, err := os.Stat(gitIgnoreFile); os.IsNotExist(err) {
-		return nil
-	}
-
-	files, err := os.ReadFile(gitIgnoreFile)
-	if err != nil {
-		return err
-	}
-
-	lines := strings.Split(string(files), "\n")
-	lines = append(lines, ".gitignore")
-	for _, line := range lines {
-		if line == "" {
-			continue
-		}
-		if strings.HasPrefix(line, "!") {
-			continue
-		}
-		file := filepath.Join(folder, line)
-		if _, err := os.Stat(file); os.IsNotExist(err) {
-			continue
-		}
-
-		stat, err := os.Stat(file)
+	if _, err := os.Stat(gitIgnoreFile); os.IsExist(err) {
+		files, err := os.ReadFile(gitIgnoreFile)
 		if err != nil {
 			return err
 		}
 
-		if stat.IsDir() {
-			err = os.RemoveAll(file)
+		lines := strings.Split(string(files), "\n")
+		lines = append(lines, ".gitignore")
+		for _, line := range lines {
+			if line == "" {
+				continue
+			}
+			if strings.HasPrefix(line, "!") {
+				continue
+			}
+
+			file := filepath.Join(folder, line)
+			if _, err := os.Stat(file); os.IsNotExist(err) {
+				continue
+			}
+
+			stat, err := os.Stat(file)
 			if err != nil {
 				return err
 			}
-		} else {
-			err = os.Remove(file)
-			if err != nil {
-				return err
+
+			if stat.IsDir() {
+				err = os.RemoveAll(file)
+				if err != nil {
+					return err
+				}
+			} else {
+				err = os.Remove(file)
+				if err != nil {
+					return err
+				}
 			}
+		}
+	}
+
+	var folders []string
+	err = filepath.Walk(folder, func(path string, info os.FileInfo, err error) error {
+		if info.IsDir() {
+			folders = append(folders, path)
+		}
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+
+	for _, folder := range folders {
+
+		sub, err := os.ReadDir(folder)
+		if err != nil {
+			return err
+		}
+		if len(sub) > 0 {
+			continue
+		}
+
+		err = os.Remove(folder)
+		if err != nil {
+			return err
 		}
 	}
 
