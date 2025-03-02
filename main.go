@@ -13,6 +13,8 @@ import (
 func main() {
 
 	rootCmd := &cli.Command{
+		Name:        "k2",
+		Description: "k2 is a simple infrastructure as code tool",
 		Commands: []*cli.Command{
 			cmds.PlanCmd,
 			cmds.ApplyCmd,
