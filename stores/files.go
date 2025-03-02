@@ -1,9 +1,10 @@
 package stores
 
 import (
-	"k2/types"
 	"os"
 	"path/filepath"
+
+	"github.com/tuxounet/k2/types"
 
 	"github.com/gobwas/glob"
 	"gopkg.in/yaml.v3"

@@ -2,8 +2,9 @@ package stores
 
 import (
 	"fmt"
-	"k2/types"
 	"path/filepath"
+
+	"github.com/tuxounet/k2/types"
 )
 
 type Inventory struct {

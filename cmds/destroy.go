@@ -3,7 +3,8 @@ package cmds
 import (
 	"context"
 	"fmt"
-	"k2/stores"
+
+	"github.com/tuxounet/k2/stores"
 
 	"github.com/urfave/cli/v3"
 )

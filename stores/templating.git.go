@@ -2,10 +2,11 @@ package stores
 
 import (
 	"fmt"
-	"k2/types"
 	"os"
 	"os/exec"
 	"path/filepath"
+
+	"github.com/tuxounet/k2/types"
 
 	"gopkg.in/yaml.v3"
 )

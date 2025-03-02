@@ -2,10 +2,11 @@ package main
 
 import (
 	"context"
-	"k2/cmds"
+
 	"log"
 	"os"
 
+	"github.com/tuxounet/k2/cmds"
 	"github.com/urfave/cli/v3"
 )
 

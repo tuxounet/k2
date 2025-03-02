@@ -2,7 +2,8 @@ package stores
 
 import (
 	"fmt"
-	"k2/types"
+
+	"github.com/tuxounet/k2/types"
 )
 
 func (t *TemplatingStore) resolveTemplateInventory(hash string) (*types.IK2Template, error) {
