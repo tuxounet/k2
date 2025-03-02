@@ -1,5 +1,11 @@
 package types
 
+import (
+	"fmt"
+
+	"github.com/tuxounet/k2/libs"
+)
+
 type IK2Template struct {
 	K2 IK2TemplateRoot `yaml:"k2"`
 }
@@ -16,5 +22,43 @@ type IK2TemplateBody struct {
 		Bootstrap []string `yaml:"bootstrap"`
 		Pre       []string `yaml:"pre"`
 		Post      []string `yaml:"post"`
+		Nuke      []string `yaml:"nuke"`
 	} `yaml:"scripts"`
+}
+
+func (t *IK2Template) ExecutePre(target *IK2TemplateApply) error {
+	return t.executeScript(target, t.K2.Body.Scripts.Pre)
+
+}
+
+func (t *IK2Template) ExecutePost(target *IK2TemplateApply) error {
+	return t.executeScript(target, t.K2.Body.Scripts.Post)
+
+}
+
+func (t *IK2Template) ExecuteNuke(target *IK2TemplateApply) error {
+	return t.executeScript(target, t.K2.Body.Scripts.Nuke)
+
+}
+
+func (t *IK2Template) ExecuteBootstrap(target *IK2TemplateApply) error {
+	return t.executeScript(target, t.K2.Body.Scripts.Bootstrap)
+
+}
+
+func (t *IK2Template) executeScript(target *IK2TemplateApply, script []string) error {
+	if len(script) == 0 {
+		return nil
+	}
+
+	fmt.Printf("template execute script: %v\n", script)
+
+	for _, line := range script {
+		err := libs.ExecCommand(line, t.K2.Metadata.Folder, t.K2.Body.Parameters)
+		if err != nil {
+			return fmt.Errorf("error executing script: %w", err)
+		}
+	}
+
+	return nil
 }

@@ -1,22 +1,15 @@
 package stores
 
 import (
-	"io"
 	"io/fs"
 	"os"
 	"path"
 	"path/filepath"
 	"slices"
 	"strings"
-	"text/template"
 
-	"github.com/Masterminds/sprig/v3"
+	"github.com/tuxounet/k2/libs"
 )
-
-func executeScript(data interface{}, stage string, destinationFolder string) error {
-	// Implement the script execution logic here
-	return nil
-}
 
 func getAllFiles(folder string) ([]string, error) {
 	var files []string
@@ -70,20 +63,12 @@ func copyFile(src string, dest string, tplData any) error {
 		return err
 	}
 
-	tpl, err := template.New("template").Funcs(sprig.FuncMap()).Parse(string(source))
+	target, err := libs.RenderTemplate(string(source), tplData)
 	if err != nil {
 		return err
 	}
 
-	var outBuffer strings.Builder
-	outIO := io.MultiWriter(&outBuffer)
-
-	err = tpl.Execute(outIO, tplData)
-	if err != nil {
-		return err
-	}
-
-	err = os.WriteFile(dest, []byte(outBuffer.String()), os.ModePerm)
+	err = os.WriteFile(dest, target, os.ModePerm)
 	if err != nil {
 		return err
 	}

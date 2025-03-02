@@ -30,20 +30,20 @@ func (t *TemplatingStore) ApplyTemplate(templateApplyId string, templateHash str
 		return false, err
 	}
 
-	err = executeScript(template, "bootstrap", apply.K2.Metadata.Folder)
+	err = template.ExecuteBootstrap(apply)
 	if err != nil {
 		return false, err
 	}
-	err = executeScript(apply, "bootstrap", apply.K2.Metadata.Folder)
+	err = apply.ExecuteBootstrap()
 	if err != nil {
 		return false, err
 	}
 
-	err = executeScript(template, "pre", apply.K2.Metadata.Folder)
+	err = template.ExecutePre(apply)
 	if err != nil {
 		return false, err
 	}
-	err = executeScript(apply, "pre", apply.K2.Metadata.Folder)
+	err = apply.ExecutePre()
 	if err != nil {
 		return false, err
 	}
@@ -89,11 +89,11 @@ func (t *TemplatingStore) ApplyTemplate(templateApplyId string, templateHash str
 		return false, err
 	}
 
-	err = executeScript(template, "post", apply.K2.Metadata.Folder)
+	err = apply.ExecutePost()
 	if err != nil {
 		return false, err
 	}
-	err = executeScript(apply, "post", apply.K2.Metadata.Folder)
+	err = template.ExecutePost(apply)
 	if err != nil {
 		return false, err
 	}
@@ -103,10 +103,16 @@ func (t *TemplatingStore) ApplyTemplate(templateApplyId string, templateHash str
 
 func (t *TemplatingStore) DestroyTemplate(templateApplyId string) error {
 	fmt.Println("destroy template", templateApplyId)
+
 	apply, err := t.plan.GetEntityAsTemplateApply(templateApplyId)
 	if err != nil {
 		return err
 	}
+	err = apply.ExecutePost()
+	if err != nil {
+		return err
+	}
+
 	folder := apply.K2.Metadata.Folder
 	if _, err := os.Stat(folder); os.IsNotExist(err) {
 		return nil
