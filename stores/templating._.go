@@ -136,9 +136,22 @@ func (t *TemplatingStore) DestroyTemplate(templateApplyId string) error {
 		if _, err := os.Stat(file); os.IsNotExist(err) {
 			continue
 		}
-		err = os.Remove(file)
+
+		stat, err := os.Stat(file)
 		if err != nil {
 			return err
+		}
+
+		if stat.IsDir() {
+			err = os.RemoveAll(file)
+			if err != nil {
+				return err
+			}
+		} else {
+			err = os.Remove(file)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
