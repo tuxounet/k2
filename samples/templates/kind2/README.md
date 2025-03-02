@@ -1,4 +1,3 @@
-# <%= title %>
-## <%= name %>
+# {{ .name }}
 
-<%= description %>
+{{ .description }}

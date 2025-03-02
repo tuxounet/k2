@@ -1,12 +1,12 @@
 k2:
   metadata:
-    id: k2.cli.sample.services.product1.component1
+    id: k2.cli.sample.services.product1.component2bis
     kind: template-apply
   body:
     template:
       source: inventory
       params:
-        id: k2.cli.sample.templates.kind2
+        id: k2.cli.sample.templates.kind1
     vars:
-      name: "component2"
+      name: "component2bis"
       description: "Template of type kind1"

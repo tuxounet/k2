@@ -1,5 +1,2 @@
-node_modules/
-dist/
-out/
-coverage/
-init/
+.out/
+.out/
