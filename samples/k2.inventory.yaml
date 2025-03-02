@@ -9,7 +9,7 @@ k2:
         - templates/**/k2.*.yaml
         - templates/**/k2.*.yml
       applies:
-        - services/**/k2.*.yaml
-        - services/**/k2.*.yml
+        - services/**/k2.apply.yaml
+        - services/**/k2.apply.yml
     vars:
       title: k2 cli samples and tests

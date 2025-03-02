@@ -1,23 +1,44 @@
-# k2 v0
+# k2 (BETA)
 
 K2 Build System CLI
 
-## Basic calls
+## CLI 
 
-From anywhere:
+### install
 
 ```bash
-npx @tuxounet-k2/cli <path to k2.inventory.yaml file> <action>
+go install github.com/tuxounet/k2@v0.9.0
+$(go env GOPATH)/bin/k2 help
 ```
+
+### uninstall 
+
+### uninstall
+
+```bash
+rm $(go env GOPATH)/bin/k2
+```
+
+
+
+## Usage
 
 Allowed actions:
 
-- create (create structure in current directory)
+- plan (compute what action well be donc)
 
 ```bash
-npx @tuxounet-k2/cli@latest create
+$(go env GOPATH)/bin/k2 plan
 ```
 
-- apply (apply template files)
-- clean (cleanup template files)
-- list
+- apply (apply template directives)
+
+```bash
+$(go env GOPATH)/bin/k2 apply
+```
+
+- destroy (cleanup template files)
+
+```bash
+$(go env GOPATH)/bin/k2 destroy
+```

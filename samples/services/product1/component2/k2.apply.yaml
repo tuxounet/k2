@@ -6,7 +6,7 @@ k2:
     template:
       source: inventory
       params:
-        id: k2.cli.sample.templates.kind2
+        id: k2.cli.sample.templates.kind1
     vars:
       name: "component2"
-      description: "Template of type kind2"
+      description: "Template of type kind1"

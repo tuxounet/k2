@@ -5,17 +5,43 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "DEV K2",
+            "name": "Launch Plan Samples",
+            "type": "go",
             "request": "launch",
-            "runtimeArgs": [
-                "run-script",
-                "dev"
-            ],
-            "runtimeExecutable": "npm",
-            "skipFiles": [
-                "<node_internals>/**"
-            ],
-            "type": "node"
-        }        
+            "mode": "debug",
+            "program": "${workspaceFolder}/main.go",
+            "console": "integratedTerminal",
+            "args": [
+                "plan",
+                "--inventory",
+                "samples/k2.inventory.yaml"
+            ]
+        },
+        {
+            "name": "Launch Apply Samples",
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            "program": "${workspaceFolder}/main.go",
+            "console": "integratedTerminal",
+            "args": [
+                "apply",
+                "--inventory",
+                "samples/k2.inventory.yaml"
+            ]
+        },
+        {
+            "name": "Launch Destroy Samples",
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            "program": "${workspaceFolder}/main.go",
+            "console": "integratedTerminal",
+            "args": [
+                "destroy",
+                "--inventory",
+                "samples/k2.inventory.yaml"
+            ]
+        }
     ]
 }

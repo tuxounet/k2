@@ -1,4 +1,5 @@
-# <%= title %>
-## <%= name %>
+# {{ .name }}
 
-<%= description %>
+(From a git ref)
+
+{{ .description }}
