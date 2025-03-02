@@ -7,12 +7,12 @@ import (
 
 func ExecCommand(script string, cwd string, tplData any) error {
 
-	_, err := RenderTemplate(script, tplData)
+	rendered, err := RenderTemplate(script, tplData)
 	if err != nil {
 		return err
 	}
 
-	cmd := exec.Command("/bin/sh", "-c", script)
+	cmd := exec.Command("/bin/sh", "-c", string(rendered))
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr

@@ -10,3 +10,8 @@ k2:
     vars:
       name: "component2"
       description: "Template of type kind1"
+    scripts:
+      bootstrap:
+        - echo "boot {{ .name }}"
+      post:
+        - echo "finjj"
