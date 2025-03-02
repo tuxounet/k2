@@ -14,7 +14,7 @@ func main() {
 
 	rootCmd := &cli.Command{
 		Name:        "k2",
-		Description: "k2 is a simple infrastructure as code tool",
+		Description: "k2 is a template engine",
 		Commands: []*cli.Command{
 			cmds.PlanCmd,
 			cmds.ApplyCmd,
