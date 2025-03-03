@@ -171,6 +171,7 @@ func (t *TemplatingStore) DestroyTemplate(templateApplyId string) error {
 
 	return nil
 }
+
 func (t *TemplatingStore) cleanupEmptyDirs(folder string) error {
 	var folders []string
 	err := filepath.Walk(folder, func(path string, info os.FileInfo, err error) error {

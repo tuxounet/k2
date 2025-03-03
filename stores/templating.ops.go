@@ -35,7 +35,7 @@ func getAllFiles(folder string) ([]string, error) {
 			continue
 		}
 		fileName := filepath.Base(relPath)
-		excludedFiles := []string{".gitignore", "k2.template.yaml", ".DS_Store"}
+		excludedFiles := []string{"k2.template.yaml", ".DS_Store"}
 		if slices.Contains(excludedFiles, fileName) {
 			continue
 		}
@@ -55,6 +55,11 @@ func copyFile(src string, dest string, tplData any) error {
 		if err != nil {
 			return err
 		}
+	}
+
+	fileName := filepath.Base(dest)
+	if fileName == ".gitignore" {
+		return nil
 	}
 
 	source, err := os.ReadFile(src)
