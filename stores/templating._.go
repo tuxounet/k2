@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/tuxounet/k2/libs"
@@ -125,7 +126,6 @@ func (t *TemplatingStore) DestroyTemplate(templateApplyId string) error {
 	}
 
 	gitIgnoreFile := filepath.Join(folder, ".gitignore")
-	//if gitignore file exists, remove all files and folders listed in it
 
 	if _, err := os.Stat(gitIgnoreFile); os.IsNotExist(err) {
 		return t.cleanupEmptyDirs(folder)
@@ -182,6 +182,10 @@ func (t *TemplatingStore) cleanupEmptyDirs(folder string) error {
 	if err != nil {
 		return err
 	}
+
+	sort.Slice(folders, func(i, j int) bool {
+		return len(folders[i]) > len(folders[j])
+	})
 
 	for _, folder := range folders {
 
