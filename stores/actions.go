@@ -2,6 +2,7 @@ package stores
 
 import (
 	"fmt"
+	"path/filepath"
 
 	"github.com/tuxounet/k2/types"
 )
@@ -110,6 +111,14 @@ func (ap *ActionPlan) Destroy() error {
 	for _, task := range ap.Tasks {
 
 		switch task.Type {
+		case ActionTaskTypeGitResolve:
+			hash := task.Params["hash"].(string)
+			refsFolder := filepath.Join(ap.inventory.InventoryDir, "refs")
+			templateFolder := filepath.Join(refsFolder, hash)
+			err := templateStore.destroyTemplateRef(templateFolder)
+			if err != nil {
+				return err
+			}
 
 		case ActionTaskTypeApply:
 			id := task.Params["id"].(string)
@@ -120,6 +129,11 @@ func (ap *ActionPlan) Destroy() error {
 			}
 
 		}
+	}
+
+	err := templateStore.cleanupEmptyDirs(ap.inventory.InventoryDir)
+	if err != nil {
+		return err
 	}
 
 	return nil

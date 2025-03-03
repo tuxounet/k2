@@ -128,7 +128,7 @@ func (t *TemplatingStore) DestroyTemplate(templateApplyId string) error {
 	gitIgnoreFile := filepath.Join(folder, ".gitignore")
 
 	if _, err := os.Stat(gitIgnoreFile); os.IsNotExist(err) {
-		return t.cleanupEmptyDirs(folder)
+		return nil
 	}
 
 	files, err := os.ReadFile(gitIgnoreFile)
@@ -169,7 +169,7 @@ func (t *TemplatingStore) DestroyTemplate(templateApplyId string) error {
 		}
 	}
 
-	return t.cleanupEmptyDirs(folder)
+	return nil
 }
 func (t *TemplatingStore) cleanupEmptyDirs(folder string) error {
 	var folders []string
@@ -202,5 +202,18 @@ func (t *TemplatingStore) cleanupEmptyDirs(folder string) error {
 			return err
 		}
 	}
+	return nil
+}
+
+func (t *TemplatingStore) destroyTemplateRef(folder string) error {
+	if _, err := os.Stat(folder); os.IsNotExist(err) {
+		return nil
+	}
+
+	err := os.RemoveAll(folder)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
