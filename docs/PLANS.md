@@ -4,7 +4,9 @@
 
 - [X] Dedupe and store gitignore file
 
+## Improvments
 
+- [X] merge gitignore files present in template with applied 
 
 ## Ideas
 

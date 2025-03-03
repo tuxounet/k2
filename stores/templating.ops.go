@@ -90,7 +90,7 @@ func createGitIgnore(files map[string]string, destinationFolder string) error {
 
 	ignorePath := filepath.Join(destinationFolder, ".gitignore")
 
-	for _, dest := range files {
+	for src, dest := range files {
 		relPath, err := filepath.Rel(destinationFolder, dest)
 		if err != nil {
 			return err
@@ -100,13 +100,29 @@ func createGitIgnore(files map[string]string, destinationFolder string) error {
 			ignoreContent = append(ignoreContent, "!"+relPath)
 			continue
 		}
+		if fileName == ".gitignore" {
+			content, err := os.ReadFile(src)
+			if err != nil {
+				return err
+			}
+			ignoreContent = append(ignoreContent, strings.Split(string(content), "\n")...)
+		}
 		ignoreContent = append(ignoreContent, relPath)
 	}
 
-	ignoreContent = slices.Compact(ignoreContent)
-	slices.Sort(ignoreContent)
+	target := make([]string, 0)
+	for _, line := range ignoreContent {
+		if line == "" {
+			continue
+		}
+		if !slices.Contains(target, line) {
+			target = append(target, line)
+		}
+	}
 
-	err := os.WriteFile(ignorePath, []byte(strings.Join(ignoreContent, "\n")), os.ModePerm)
+	slices.Sort(target)
+
+	err := os.WriteFile(ignorePath, []byte(strings.Join(target, "\n")), os.ModePerm)
 
 	if err != nil {
 		return err
