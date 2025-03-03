@@ -103,6 +103,9 @@ func createGitIgnore(files map[string]string, destinationFolder string) error {
 		ignoreContent = append(ignoreContent, relPath)
 	}
 
+	ignoreContent = slices.Compact(ignoreContent)
+	slices.Sort(ignoreContent)
+
 	err := os.WriteFile(ignorePath, []byte(strings.Join(ignoreContent, "\n")), os.ModePerm)
 
 	if err != nil {

@@ -2,12 +2,10 @@
 
 ## Fixes
 
-- [ ] Dedupe and store gitignore file
+- [X] Dedupe and store gitignore file
 
-## Improvments
 
-- [ ] merge gitignore files on apply
 
 ## Ideas
 
-- [ ] eject command => Leave all in places
+- [ ] eject command => Leave all in places and remove k2 references
