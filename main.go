@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	_ "embed"
 
 	"log"
 	"os"
@@ -10,11 +11,16 @@ import (
 	"github.com/urfave/cli/v3"
 )
 
+//go:embed version.txt
+var version string
+
 func main() {
 
 	rootCmd := &cli.Command{
-		Name:        "k2",
-		Description: "k2 is a template engine",
+		Name:                  "k2",
+		Version:               version,
+		EnableShellCompletion: true,
+		Description:           "k2 is a template engine",
 		Commands: []*cli.Command{
 			cmds.PlanCmd,
 			cmds.ApplyCmd,

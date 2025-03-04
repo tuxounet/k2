@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
 	"sort"
 	"strings"
 
@@ -33,13 +34,19 @@ func (t *TemplatingStore) ApplyTemplate(templateApplyId string, templateHash str
 		return false, err
 	}
 
-	err = template.ExecuteBootstrap(apply)
+	firstTime, err := t.isFirstTimeApply(templateApplyId)
 	if err != nil {
 		return false, err
 	}
-	err = apply.ExecuteBootstrap()
-	if err != nil {
-		return false, err
+	if firstTime {
+		err = template.ExecuteBootstrap(apply)
+		if err != nil {
+			return false, err
+		}
+		err = apply.ExecuteBootstrap()
+		if err != nil {
+			return false, err
+		}
 	}
 
 	err = template.ExecutePre(apply)
@@ -170,6 +177,33 @@ func (t *TemplatingStore) DestroyTemplate(templateApplyId string) error {
 	}
 
 	return nil
+}
+
+func (t *TemplatingStore) isFirstTimeApply(templateApplyId string) (bool, error) {
+	apply, err := t.plan.GetEntityAsTemplateApply(templateApplyId)
+	if err != nil {
+		return false, err
+	}
+
+	if _, err := os.Stat(apply.K2.Metadata.Folder); os.IsNotExist(err) {
+		return true, nil
+	}
+
+	gitIgnoreFile := filepath.Join(apply.K2.Metadata.Folder, ".gitignore")
+
+	if _, err := os.Stat(gitIgnoreFile); os.IsNotExist(err) {
+		return true, nil
+	}
+
+	//Read the .gitignore file
+	fileContent, err := os.ReadFile(gitIgnoreFile)
+	if err != nil {
+		return false, err
+	}
+
+	present := slices.Contains(strings.Split(string(fileContent), "\n"), "!k2.apply")
+	return present, nil
+
 }
 
 func (t *TemplatingStore) cleanupEmptyDirs(folder string) error {
