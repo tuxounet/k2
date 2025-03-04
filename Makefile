@@ -16,7 +16,7 @@ build: write-version
 
 bump-patch: build 
 	echo "Bumping version patch"
-	@sh ./scripts/bump-patch.sh
+	@bash ./tools/bump-patch.sh
 test:
 	go test -v ./...
 
