@@ -2,7 +2,7 @@ APP_NAME := "k2"
 GIT_BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
 GO_PATH:=$(shell go env GOPATH)
 VERSION := $(if $(CI_COMMIT_TAG),$(CI_COMMIT_TAG),v${GIT_BRANCH})
-VERSION_FILE := ./version.yaml
+VERSION_FILE := ./version.txt
 
 
 write-version: 
