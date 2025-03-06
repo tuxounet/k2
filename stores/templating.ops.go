@@ -1,6 +1,7 @@
 package stores
 
 import (
+	"fmt"
 	"io/fs"
 	"os"
 	"path"
@@ -95,6 +96,7 @@ func createGitIgnore(files map[string]string, destinationFolder string) error {
 		if err != nil {
 			return err
 		}
+		relPath = fmt.Sprintf("./%s", relPath)
 		fileName := filepath.Base(relPath)
 		if fileName == "k2.apply.yaml" {
 			ignoreContent = append(ignoreContent, "!"+relPath)
