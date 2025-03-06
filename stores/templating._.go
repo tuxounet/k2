@@ -117,6 +117,16 @@ func (t *TemplatingStore) DestroyTemplate(templateApplyId string) error {
 	if err != nil {
 		return err
 	}
+	templateHash := apply.K2.Body.Template.Hash()
+	template, ok := t.plan.Templates[templateHash]
+	if !ok {
+		return fmt.Errorf("template not found: %s", templateHash)
+	}
+
+	err = template.ExecutePost(apply)
+	if err != nil {
+		return err
+	}
 
 	err = apply.ExecuteNuke()
 	if err != nil {
