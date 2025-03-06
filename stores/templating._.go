@@ -99,15 +99,14 @@ func (t *TemplatingStore) ApplyTemplate(templateApplyId string, templateHash str
 		return false, err
 	}
 
-	err = apply.ExecutePost()
-	if err != nil {
-		return false, err
-	}
 	err = template.ExecutePost(apply)
 	if err != nil {
 		return false, err
 	}
-
+	err = apply.ExecutePost()
+	if err != nil {
+		return false, err
+	}
 	return true, nil
 }
 
