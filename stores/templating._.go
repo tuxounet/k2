@@ -118,10 +118,7 @@ func (t *TemplatingStore) DestroyTemplate(templateApplyId string) error {
 	if err != nil {
 		return err
 	}
-	err = apply.ExecutePost()
-	if err != nil {
-		return err
-	}
+
 	err = apply.ExecuteNuke()
 	if err != nil {
 		return err
