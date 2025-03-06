@@ -96,7 +96,9 @@ func createGitIgnore(files map[string]string, destinationFolder string) error {
 		if err != nil {
 			return err
 		}
-		relPath = fmt.Sprintf("./%s", relPath)
+		if len(strings.Split(relPath, string(os.PathSeparator))) == 0 {
+			relPath = fmt.Sprintf("./%s", relPath)
+		}
 		fileName := filepath.Base(relPath)
 		if fileName == "k2.apply.yaml" {
 			ignoreContent = append(ignoreContent, "!"+relPath)
