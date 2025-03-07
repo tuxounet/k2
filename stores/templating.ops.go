@@ -111,7 +111,6 @@ func createGitIgnore(files map[string]string, destinationFolder string) error {
 			}
 			ignoreContent = append(ignoreContent, strings.Split(string(content), "\n")...)
 		}
-		relPath = fmt.Sprintf("./%s", relPath)
 
 		ignoreContent = append(ignoreContent, relPath)
 	}
