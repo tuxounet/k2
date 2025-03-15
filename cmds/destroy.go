@@ -26,7 +26,7 @@ var DestroyCmd = &cli.Command{
 }
 
 func doDestroy() error {
-	fmt.Printf("Nuke inventory %s\n", initialInventoryFile)
+	fmt.Printf("Destroy inventory %s\n", initialInventoryFile)
 
 	if initialInventoryFile == "" {
 		initialInventoryFile = "./k2.inventory.yaml"
