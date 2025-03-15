@@ -6,6 +6,7 @@ import (
 	"os/exec"
 	"path/filepath"
 
+	"github.com/tuxounet/k2/libs"
 	"github.com/tuxounet/k2/types"
 
 	"gopkg.in/yaml.v3"
@@ -26,7 +27,7 @@ func (t *TemplatingStore) resolveTemplateGit(hash string) (*types.IK2Template, e
 		return nil, fmt.Errorf("template not found: %s", hash)
 	}
 
-	refsFolder := filepath.Join(t.plan.inventory.InventoryDir, "refs")
+	refsFolder := filepath.Join(t.plan.inventory.InventoryDir, libs.RefsDir)
 	if _, err := os.Stat(refsFolder); os.IsNotExist(err) {
 		err := os.MkdirAll(refsFolder, os.ModePerm)
 		if err != nil {

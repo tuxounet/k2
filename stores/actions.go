@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"path/filepath"
 
+	"github.com/tuxounet/k2/libs"
 	"github.com/tuxounet/k2/types"
 )
 
@@ -113,7 +114,7 @@ func (ap *ActionPlan) Destroy() error {
 		switch task.Type {
 		case ActionTaskTypeGitResolve:
 			hash := task.Params["hash"].(string)
-			refsFolder := filepath.Join(ap.inventory.InventoryDir, "refs")
+			refsFolder := filepath.Join(ap.inventory.InventoryDir, libs.RefsDir)
 			templateFolder := filepath.Join(refsFolder, hash)
 			err := templateStore.destroyTemplateRef(templateFolder)
 			if err != nil {
