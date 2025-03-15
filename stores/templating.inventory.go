@@ -1,14 +1,13 @@
 package stores
 
 import (
-	"fmt"
-
+	"github.com/tuxounet/k2/libs"
 	"github.com/tuxounet/k2/types"
 )
 
 func (t *TemplatingStore) resolveTemplateInventory(hash string) (*types.IK2Template, error) {
 
-	fmt.Println("resolve template invenntory", hash)
+	libs.WriteOutputf("resolve template inventory %s\n", hash)
 
 	refs := t.plan.Refs
 
@@ -20,5 +19,5 @@ func (t *TemplatingStore) resolveTemplateInventory(hash string) (*types.IK2Templ
 
 	}
 
-	return nil, fmt.Errorf("template not found: %s", hash)
+	return nil, libs.WriteErrorf("template not found: %s", hash)
 }

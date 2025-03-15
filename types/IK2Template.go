@@ -1,7 +1,6 @@
 package types
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/tuxounet/k2/libs"
@@ -52,7 +51,7 @@ func (t *IK2Template) executeScript(target *IK2TemplateApply, script []string) e
 		return nil
 	}
 
-	fmt.Printf("template execute script: %v\n", script)
+	libs.WriteOutputf("template execute script: %v\n", script)
 
 	for _, line := range script {
 		line := strings.TrimSpace(line)
@@ -62,7 +61,7 @@ func (t *IK2Template) executeScript(target *IK2TemplateApply, script []string) e
 
 		err := libs.ExecCommand(line, target.K2.Metadata.Folder, libs.MergeMaps(t.K2.Body.Parameters, target.K2.Body.Vars))
 		if err != nil {
-			return fmt.Errorf("error executing script: %w", err)
+			return libs.WriteErrorf("error executing script: %w", err)
 		}
 	}
 

@@ -1,7 +1,6 @@
 package stores
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"slices"
@@ -22,10 +21,10 @@ func NewTemplatingStore(plan *ActionPlan) *TemplatingStore {
 }
 
 func (t *TemplatingStore) ApplyTemplate(templateApplyId string, templateHash string, produceGitIgnore bool) (bool, error) {
-	fmt.Println("apply template", templateApplyId)
+	libs.WriteOutputf("apply template %s\n", templateApplyId)
 	template, ok := t.plan.Templates[templateHash]
 	if !ok {
-		return false, fmt.Errorf("template not found: %s", templateHash)
+		return false, libs.WriteErrorf("template not found: %s", templateHash)
 
 	}
 
@@ -86,7 +85,7 @@ func (t *TemplatingStore) ApplyTemplate(templateApplyId string, templateHash str
 	}
 
 	for source, destination := range copyMap {
-		fmt.Println("copy", source, destination)
+		libs.WriteOutputf("copy %s=>%s\n", source, destination)
 
 		err = copyFile(source, destination, libs.MergeMaps(template.K2.Body.Parameters, apply.K2.Body.Vars))
 		if err != nil {
@@ -111,7 +110,7 @@ func (t *TemplatingStore) ApplyTemplate(templateApplyId string, templateHash str
 }
 
 func (t *TemplatingStore) DestroyTemplate(templateApplyId string) error {
-	fmt.Println("destroy template", templateApplyId)
+	libs.WriteOutputf("destroy template %s\n", templateApplyId)
 
 	apply, err := t.plan.GetEntityAsTemplateApply(templateApplyId)
 	if err != nil {

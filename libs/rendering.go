@@ -1,7 +1,6 @@
 package libs
 
 import (
-	"fmt"
 	"io"
 	"strings"
 	"text/template"
@@ -11,7 +10,7 @@ import (
 
 func RenderTemplate(tmpl string, data any) ([]byte, error) {
 
-	fmt.Printf("Rendering template: %s\n", tmpl)
+	WriteOutputf("Rendering template: %s\n", tmpl)
 
 	textTpl := template.New("template").Funcs(sprig.FuncMap())
 
@@ -27,8 +26,6 @@ func RenderTemplate(tmpl string, data any) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	fmt.Printf("Rendered template: %s\n", outBuffer.String())
 
 	return []byte(outBuffer.String()), nil
 }

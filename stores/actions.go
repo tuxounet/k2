@@ -72,7 +72,6 @@ func (ap *ActionPlan) Apply() error {
 		switch task.Type {
 		case ActionTaskTypeLocalResolve:
 			hash := task.Params["hash"].(string)
-			fmt.Printf("Local Resolve: %s\n", hash)
 			tpl, err := templateStore.resolveTemplateInventory(hash)
 			if err != nil {
 				return err
@@ -95,11 +94,11 @@ func (ap *ActionPlan) Apply() error {
 				return err
 			}
 			if !ok {
-				return fmt.Errorf("error applying template: %s", id)
+				return libs.WriteErrorf("error applying template: %s\n", id)
 			}
 
 		default:
-			return fmt.Errorf("unknown action type: %s", task.Type)
+			return libs.WriteErrorf("unknown action type: %s\n", task.Type)
 		}
 	}
 
@@ -144,7 +143,7 @@ func (ap *ActionPlan) GetEntityAsTemplate(id string) (*types.IK2Template, error)
 
 	ret, ok := ap.Entities[id]
 	if !ok {
-		return nil, fmt.Errorf("entity not found: %s", id)
+		return nil, libs.WriteErrorf("entity not found: %s\n", id)
 	}
 
 	return ret.(*types.IK2Template), nil
@@ -155,7 +154,7 @@ func (ap *ActionPlan) GetEntityAsTemplateApply(id string) (*types.IK2TemplateApp
 
 	ret, ok := ap.Entities[id]
 	if !ok {
-		return nil, fmt.Errorf("entity not found: %s", id)
+		return nil, libs.WriteErrorf("entity not found: %s\n", id)
 	}
 
 	return ret.(*types.IK2TemplateApply), nil

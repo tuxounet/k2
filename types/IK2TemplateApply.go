@@ -1,8 +1,6 @@
 package types
 
 import (
-	"fmt"
-
 	"github.com/tuxounet/k2/libs"
 )
 
@@ -50,12 +48,12 @@ func (t *IK2TemplateApply) executeScript(script []string) error {
 	if len(script) == 0 {
 		return nil
 	}
-	fmt.Printf("template-apply execute script: %v\n", script)
+	libs.WriteOutputf("template-apply execute script: %s %v\n", t.K2.Metadata.ID, script)
 
 	for _, line := range script {
 		err := libs.ExecCommand(line, t.K2.Metadata.Folder, t.K2.Body.Vars)
 		if err != nil {
-			return fmt.Errorf("error executing script: %w", err)
+			return libs.WriteErrorf("error executing script: %s %w", t.K2.Metadata.ID, err)
 		}
 	}
 	return nil

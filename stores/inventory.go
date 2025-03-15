@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"path/filepath"
 
+	"github.com/tuxounet/k2/libs"
 	"github.com/tuxounet/k2/types"
 )
 
@@ -49,12 +50,12 @@ func (i *Inventory) Plan() (*ActionPlan, error) {
 	result := NewActionPlan(i)
 	appliesFounds, err := i.files.Scan(i.inventoryDefinition.K2.Body.Folders.Applies)
 	if err != nil {
-		return nil, fmt.Errorf("error scanning applies: %w", err)
+		return nil, libs.WriteErrorf("error scanning applies: %w\n", err)
 	}
-	fmt.Printf("Found Apply: %d\n", len(appliesFounds))
+	libs.WriteOutputf("Found Apply: %d\n", len(appliesFounds))
 
 	if len(appliesFounds) == 0 {
-		fmt.Printf("No applies found\n")
+		libs.WriteErrorString("No applies found\n")
 		return result, nil
 	}
 
@@ -63,7 +64,7 @@ func (i *Inventory) Plan() (*ActionPlan, error) {
 	for _, apply := range appliesFounds {
 		templateApply, err := i.files.GetAsTemplateApply(apply)
 		if err != nil {
-			return nil, fmt.Errorf("error getting template apply: %w", err)
+			return nil, libs.WriteErrorf("error getting template apply: %w", err)
 		}
 		applies = append(applies, templateApply)
 		templateRefs = append(templateRefs, templateApply.K2.Body.Template)
@@ -74,14 +75,14 @@ func (i *Inventory) Plan() (*ActionPlan, error) {
 
 	templatesFounds, err := i.files.Scan(i.inventoryDefinition.K2.Body.Folders.Templates)
 	if err != nil {
-		return nil, fmt.Errorf("error scanning templates: %w", err)
+		return nil, libs.WriteErrorf("error scanning templates: %w", err)
 	}
 
 	inventoryTemplates := make([]*types.IK2Template, 0)
 	for _, template := range templatesFounds {
 		template, err := i.files.GetAsTemplate(template)
 		if err != nil {
-			return nil, fmt.Errorf("error getting template: %w", err)
+			return nil, libs.WriteErrorf("error getting template: %w", err)
 		}
 		inventoryTemplates = append(inventoryTemplates, template)
 		result.AddEntity(template.K2.Metadata, template)
@@ -100,7 +101,7 @@ func (i *Inventory) Plan() (*ActionPlan, error) {
 				}
 			}
 			if !found {
-				return nil, fmt.Errorf("template not found: %s", templateRef.Params["id"])
+				return nil, libs.WriteErrorf("template not found: %s", templateRef.Params["id"])
 			}
 			result.AddTask(ActionTask{
 				Type: ActionTaskTypeLocalResolve,
@@ -120,7 +121,7 @@ func (i *Inventory) Plan() (*ActionPlan, error) {
 			})
 
 		default:
-			return nil, fmt.Errorf("unknown template source: %s", templateRef.Source)
+			return nil, libs.WriteErrorf("unknown template source: %s", templateRef.Source)
 		}
 
 	}
@@ -148,7 +149,7 @@ func (i *Inventory) Apply(plan *ActionPlan) error {
 
 	err := plan.Apply()
 	if err != nil {
-		return fmt.Errorf("error applying plan: %w", err)
+		return libs.WriteErrorf("error applying plan: %w", err)
 	}
 	return nil
 
@@ -158,7 +159,7 @@ func (i *Inventory) Destroy(plan *ActionPlan) error {
 
 	err := plan.Destroy()
 	if err != nil {
-		return fmt.Errorf("error destroying plan: %w", err)
+		return libs.WriteErrorf("error destroying plan: %w", err)
 	}
 	return nil
 

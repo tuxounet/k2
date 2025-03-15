@@ -2,8 +2,8 @@ package cmds
 
 import (
 	"context"
-	"fmt"
 
+	"github.com/tuxounet/k2/libs"
 	"github.com/tuxounet/k2/stores"
 	"github.com/urfave/cli/v3"
 )
@@ -25,7 +25,7 @@ var ApplyCmd = &cli.Command{
 }
 
 func doApply() error {
-	fmt.Printf("Applying inventory %s\n", initialInventoryFile)
+	libs.WriteOutputf("Applying inventory %s\n", initialInventoryFile)
 
 	if initialInventoryFile == "" {
 		initialInventoryFile = "./k2.inventory.yaml"
