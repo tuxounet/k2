@@ -14,8 +14,8 @@ type IK2TemplateApplyRoot struct {
 }
 
 type IK2TemplateApplyBody struct {
-	Template IK2TemplateRef    `yaml:"template"`
-	Vars     map[string]string `yaml:"vars"`
+	Template IK2TemplateRef `yaml:"template"`
+	Vars     map[string]any `yaml:"vars"`
 	Scripts  struct {
 		Bootstrap []string `yaml:"bootstrap"`
 		Pre       []string `yaml:"pre"`

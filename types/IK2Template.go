@@ -16,8 +16,8 @@ type IK2TemplateRoot struct {
 }
 
 type IK2TemplateBody struct {
-	Name       string            `yaml:"name"`
-	Parameters map[string]string `yaml:"parameters"`
+	Name       string         `yaml:"name"`
+	Parameters map[string]any `yaml:"parameters"`
 	Scripts    struct {
 		Bootstrap []string `yaml:"bootstrap"`
 		Pre       []string `yaml:"pre"`

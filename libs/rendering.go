@@ -30,8 +30,8 @@ func RenderTemplate(tmpl string, data any) ([]byte, error) {
 	return []byte(outBuffer.String()), nil
 }
 
-func MergeMaps(maps ...map[string]string) map[string]string {
-	result := make(map[string]string)
+func MergeMaps(maps ...map[string]any) map[string]any {
+	result := make(map[string]any)
 	for _, m := range maps {
 		for k, v := range m {
 			result[k] = v
