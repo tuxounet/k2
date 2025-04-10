@@ -7,7 +7,7 @@ k2:
       source: git
       params:
         repository: https://github.com/tuxounet/k2.git
-        branch: feat/try-in-golang
+        branch: main
         path: samples/templates/fromGit1/k2.template.yaml
     scripts:
       bootstrap:

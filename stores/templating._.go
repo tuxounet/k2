@@ -1,10 +1,13 @@
 package stores
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
+	"sort"
 	"strings"
+
+	"github.com/tuxounet/k2/libs"
 )
 
 type TemplatingStore struct {
@@ -18,10 +21,10 @@ func NewTemplatingStore(plan *ActionPlan) *TemplatingStore {
 }
 
 func (t *TemplatingStore) ApplyTemplate(templateApplyId string, templateHash string, produceGitIgnore bool) (bool, error) {
-	fmt.Println("apply template", templateApplyId)
+	libs.WriteOutputf("apply template %s\n", templateApplyId)
 	template, ok := t.plan.Templates[templateHash]
 	if !ok {
-		return false, fmt.Errorf("template not found: %s", templateHash)
+		return false, libs.WriteErrorf("template not found: %s", templateHash)
 
 	}
 
@@ -30,20 +33,26 @@ func (t *TemplatingStore) ApplyTemplate(templateApplyId string, templateHash str
 		return false, err
 	}
 
-	err = executeScript(template, "bootstrap", apply.K2.Metadata.Folder)
+	firstTime, err := t.isFirstTimeApply(templateApplyId)
 	if err != nil {
 		return false, err
 	}
-	err = executeScript(apply, "bootstrap", apply.K2.Metadata.Folder)
-	if err != nil {
-		return false, err
+	if firstTime {
+		err = template.ExecuteBootstrap(apply)
+		if err != nil {
+			return false, err
+		}
+		err = apply.ExecuteBootstrap()
+		if err != nil {
+			return false, err
+		}
 	}
 
-	err = executeScript(template, "pre", apply.K2.Metadata.Folder)
+	err = template.ExecutePre(apply)
 	if err != nil {
 		return false, err
 	}
-	err = executeScript(apply, "pre", apply.K2.Metadata.Folder)
+	err = apply.ExecutePre()
 	if err != nil {
 		return false, err
 	}
@@ -76,9 +85,9 @@ func (t *TemplatingStore) ApplyTemplate(templateApplyId string, templateHash str
 	}
 
 	for source, destination := range copyMap {
-		fmt.Println("copy", source, destination)
+		libs.WriteOutputf("copy %s=>%s\n", source, destination)
 
-		err = copyFile(source, destination, apply.K2.Body.Vars)
+		err = copyFile(source, destination, libs.MergeMaps(template.K2.Body.Parameters, apply.K2.Body.Vars))
 		if err != nil {
 			return false, err
 		}
@@ -89,24 +98,37 @@ func (t *TemplatingStore) ApplyTemplate(templateApplyId string, templateHash str
 		return false, err
 	}
 
-	err = executeScript(template, "post", apply.K2.Metadata.Folder)
+	err = template.ExecutePost(apply)
 	if err != nil {
 		return false, err
 	}
-	err = executeScript(apply, "post", apply.K2.Metadata.Folder)
+	err = apply.ExecutePost()
 	if err != nil {
 		return false, err
 	}
-
 	return true, nil
 }
 
 func (t *TemplatingStore) DestroyTemplate(templateApplyId string) error {
-	fmt.Println("destroy template", templateApplyId)
+	libs.WriteOutputf("destroy template %s\n", templateApplyId)
+
 	apply, err := t.plan.GetEntityAsTemplateApply(templateApplyId)
 	if err != nil {
 		return err
 	}
+	templateHash := apply.K2.Body.Template.Hash()
+	template, templateFound := t.plan.Templates[templateHash]
+	if templateFound {
+		err = template.ExecutePost(apply)
+		if err != nil {
+			return err
+		}
+	}
+	err = apply.ExecuteNuke()
+	if err != nil {
+		return err
+	}
+
 	folder := apply.K2.Metadata.Folder
 	if _, err := os.Stat(folder); os.IsNotExist(err) {
 		return nil
@@ -132,14 +154,102 @@ func (t *TemplatingStore) DestroyTemplate(templateApplyId string) error {
 		if strings.HasPrefix(line, "!") {
 			continue
 		}
+
 		file := filepath.Join(folder, line)
 		if _, err := os.Stat(file); os.IsNotExist(err) {
 			continue
 		}
-		err = os.Remove(file)
+
+		stat, err := os.Stat(file)
 		if err != nil {
 			return err
 		}
+
+		if stat.IsDir() {
+			err = os.RemoveAll(file)
+			if err != nil {
+				return err
+			}
+		} else {
+			err = os.Remove(file)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+func (t *TemplatingStore) isFirstTimeApply(templateApplyId string) (bool, error) {
+	apply, err := t.plan.GetEntityAsTemplateApply(templateApplyId)
+	if err != nil {
+		return false, err
+	}
+
+	if _, err := os.Stat(apply.K2.Metadata.Folder); os.IsNotExist(err) {
+		return true, nil
+	}
+
+	gitIgnoreFile := filepath.Join(apply.K2.Metadata.Folder, ".gitignore")
+
+	if _, err := os.Stat(gitIgnoreFile); os.IsNotExist(err) {
+		return true, nil
+	}
+
+	//Read the .gitignore file
+	fileContent, err := os.ReadFile(gitIgnoreFile)
+	if err != nil {
+		return false, err
+	}
+
+	present := slices.Contains(strings.Split(string(fileContent), "\n"), "!k2.apply")
+	return present, nil
+
+}
+
+func (t *TemplatingStore) cleanupEmptyDirs(folder string) error {
+	var folders []string
+	err := filepath.Walk(folder, func(path string, info os.FileInfo, err error) error {
+		if info.IsDir() {
+			folders = append(folders, path)
+		}
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+
+	sort.Slice(folders, func(i, j int) bool {
+		return len(folders[i]) > len(folders[j])
+	})
+
+	for _, folder := range folders {
+
+		sub, err := os.ReadDir(folder)
+		if err != nil {
+			return err
+		}
+		if len(sub) > 0 {
+			continue
+		}
+
+		err = os.Remove(folder)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (t *TemplatingStore) destroyTemplateRef(folder string) error {
+	if _, err := os.Stat(folder); os.IsNotExist(err) {
+		return nil
+	}
+
+	err := os.RemoveAll(folder)
+	if err != nil {
+		return err
 	}
 
 	return nil

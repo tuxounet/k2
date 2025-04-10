@@ -2,7 +2,16 @@
 
 K2 Build System CLI
 
-## CLI 
+## CLI
+
+### from everywhere 
+
+```bash
+K2_VERSION=$(curl --silent "https://api.github.com/repos/tuxounet/k2/tags" | jq -r '.[0].name')
+go install github.com/tuxounet/k2@${K2_VERSION}
+$(go env GOPATH)/bin/k2 help
+```
+
 
 ### install
 
@@ -11,15 +20,11 @@ go install github.com/tuxounet/k2@v0.9.0
 $(go env GOPATH)/bin/k2 help
 ```
 
-### uninstall 
-
 ### uninstall
 
 ```bash
 rm $(go env GOPATH)/bin/k2
 ```
-
-
 
 ## Usage
 

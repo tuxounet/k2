@@ -1,20 +1,16 @@
 package stores
 
 import (
-	"io"
+	"fmt"
 	"io/fs"
 	"os"
 	"path"
 	"path/filepath"
 	"slices"
 	"strings"
-	"text/template"
-)
 
-func executeScript(data interface{}, stage string, destinationFolder string) error {
-	// Implement the script execution logic here
-	return nil
-}
+	"github.com/tuxounet/k2/libs"
+)
 
 func getAllFiles(folder string) ([]string, error) {
 	var files []string
@@ -40,7 +36,7 @@ func getAllFiles(folder string) ([]string, error) {
 			continue
 		}
 		fileName := filepath.Base(relPath)
-		excludedFiles := []string{".gitignore", "k2.template.yaml", ".DS_Store"}
+		excludedFiles := []string{"k2.template.yaml", ".DS_Store"}
 		if slices.Contains(excludedFiles, fileName) {
 			continue
 		}
@@ -62,26 +58,23 @@ func copyFile(src string, dest string, tplData any) error {
 		}
 	}
 
+	fileName := filepath.Base(dest)
+	if fileName == ".gitignore" {
+		return nil
+	}
+
 	source, err := os.ReadFile(src)
 	if err != nil {
 
 		return err
 	}
 
-	tpl, err := template.New("template").Parse(string(source))
+	target, err := libs.RenderTemplate(string(source), tplData)
 	if err != nil {
 		return err
 	}
 
-	var outBuffer strings.Builder
-	outIO := io.MultiWriter(&outBuffer)
-
-	err = tpl.Execute(outIO, tplData)
-	if err != nil {
-		return err
-	}
-
-	err = os.WriteFile(dest, []byte(outBuffer.String()), os.ModePerm)
+	err = os.WriteFile(dest, target, os.ModePerm)
 	if err != nil {
 		return err
 	}
@@ -98,20 +91,43 @@ func createGitIgnore(files map[string]string, destinationFolder string) error {
 
 	ignorePath := filepath.Join(destinationFolder, ".gitignore")
 
-	for _, dest := range files {
+	for src, dest := range files {
 		relPath, err := filepath.Rel(destinationFolder, dest)
 		if err != nil {
 			return err
+		}
+		if len(strings.Split(relPath, string(os.PathSeparator))) == 0 {
+			relPath = fmt.Sprintf("./%s", relPath)
 		}
 		fileName := filepath.Base(relPath)
 		if fileName == "k2.apply.yaml" {
 			ignoreContent = append(ignoreContent, "!"+relPath)
 			continue
 		}
+		if fileName == ".gitignore" {
+			content, err := os.ReadFile(src)
+			if err != nil {
+				return err
+			}
+			ignoreContent = append(ignoreContent, strings.Split(string(content), "\n")...)
+		}
+
 		ignoreContent = append(ignoreContent, relPath)
 	}
 
-	err := os.WriteFile(ignorePath, []byte(strings.Join(ignoreContent, "\n")), os.ModePerm)
+	target := make([]string, 0)
+	for _, line := range ignoreContent {
+		if line == "" {
+			continue
+		}
+		if !slices.Contains(target, line) {
+			target = append(target, line)
+		}
+	}
+
+	slices.Sort(target)
+
+	err := os.WriteFile(ignorePath, []byte(strings.Join(target, "\n")), os.ModePerm)
 
 	if err != nil {
 		return err

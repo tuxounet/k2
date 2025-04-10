@@ -10,3 +10,14 @@ k2:
     vars:
       name: "component2"
       description: "Template of type kind1"
+      coll: 
+          - a
+          - b
+          - c
+      obj: 
+          a: 1
+          b: stc
+          c: true
+    scripts: 
+      nuke: 
+        - echo "Nuke script for component2"

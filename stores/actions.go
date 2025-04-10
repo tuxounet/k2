@@ -2,7 +2,9 @@ package stores
 
 import (
 	"fmt"
+	"path/filepath"
 
+	"github.com/tuxounet/k2/libs"
 	"github.com/tuxounet/k2/types"
 )
 
@@ -70,7 +72,6 @@ func (ap *ActionPlan) Apply() error {
 		switch task.Type {
 		case ActionTaskTypeLocalResolve:
 			hash := task.Params["hash"].(string)
-			fmt.Printf("Local Resolve: %s\n", hash)
 			tpl, err := templateStore.resolveTemplateInventory(hash)
 			if err != nil {
 				return err
@@ -93,11 +94,11 @@ func (ap *ActionPlan) Apply() error {
 				return err
 			}
 			if !ok {
-				return fmt.Errorf("error applying template: %s", id)
+				return libs.WriteErrorf("error applying template: %s\n", id)
 			}
 
 		default:
-			return fmt.Errorf("unknown action type: %s", task.Type)
+			return libs.WriteErrorf("unknown action type: %s\n", task.Type)
 		}
 	}
 
@@ -110,6 +111,14 @@ func (ap *ActionPlan) Destroy() error {
 	for _, task := range ap.Tasks {
 
 		switch task.Type {
+		case ActionTaskTypeGitResolve:
+			hash := task.Params["hash"].(string)
+			refsFolder := filepath.Join(ap.inventory.InventoryDir, libs.RefsDir)
+			templateFolder := filepath.Join(refsFolder, hash)
+			err := templateStore.destroyTemplateRef(templateFolder)
+			if err != nil {
+				return err
+			}
 
 		case ActionTaskTypeApply:
 			id := task.Params["id"].(string)
@@ -122,6 +131,11 @@ func (ap *ActionPlan) Destroy() error {
 		}
 	}
 
+	err := templateStore.cleanupEmptyDirs(ap.inventory.InventoryDir)
+	if err != nil {
+		return err
+	}
+
 	return nil
 
 }
@@ -129,7 +143,7 @@ func (ap *ActionPlan) GetEntityAsTemplate(id string) (*types.IK2Template, error)
 
 	ret, ok := ap.Entities[id]
 	if !ok {
-		return nil, fmt.Errorf("entity not found: %s", id)
+		return nil, libs.WriteErrorf("entity not found: %s\n", id)
 	}
 
 	return ret.(*types.IK2Template), nil
@@ -140,7 +154,7 @@ func (ap *ActionPlan) GetEntityAsTemplateApply(id string) (*types.IK2TemplateApp
 
 	ret, ok := ap.Entities[id]
 	if !ok {
-		return nil, fmt.Errorf("entity not found: %s", id)
+		return nil, libs.WriteErrorf("entity not found: %s\n", id)
 	}
 
 	return ret.(*types.IK2TemplateApply), nil
