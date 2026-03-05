@@ -10,8 +10,6 @@ import (
 
 func RenderTemplate(tmpl string, data any) ([]byte, error) {
 
-	WriteOutputf("Rendering template: %s\n", tmpl)
-
 	textTpl := template.New("template").Funcs(sprig.FuncMap())
 
 	tpl, err := textTpl.Parse(string(tmpl))

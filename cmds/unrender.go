@@ -26,7 +26,7 @@ var UnrenderCmd = &cli.Command{
 }
 
 func doUnrender() error {
-	libs.WriteOutputf("Unrendering inventory %s\n", initialInventoryFile)
+	libs.WriteTitle("Unrender %s", initialInventoryFile)
 
 	if initialInventoryFile == "" {
 		initialInventoryFile = "./k2.inventory.yaml"

@@ -25,7 +25,7 @@ var RenderCmd = &cli.Command{
 }
 
 func doRender() error {
-	libs.WriteOutputf("Rendering inventory %s\n", initialInventoryFile)
+	libs.WriteTitle("Render %s", initialInventoryFile)
 
 	if initialInventoryFile == "" {
 		initialInventoryFile = "./k2.inventory.yaml"

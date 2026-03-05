@@ -13,7 +13,7 @@ import (
 
 func (t *TemplatingStore) resolveTemplateGit(hash string) (*types.IK2Template, error) {
 
-	libs.WriteOutputf("resolve template git %s\n", hash)
+	libs.WriteStep(libs.IconResolve, "resolve %s (git)", hash)
 
 	var gitRef *types.IK2TemplateRef
 	for _, ref := range t.plan.Refs {
@@ -45,7 +45,6 @@ func (t *TemplatingStore) resolveTemplateGit(hash string) (*types.IK2Template, e
 			return nil, libs.WriteErrorf("failed to clone repository: %w, %s", err, output)
 		}
 
-		libs.WriteOutputf("output: %s\n", output)
 	} else {
 		cmd := exec.Command("git", "pull")
 		cmd.Dir = targetCloneFolder

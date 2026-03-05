@@ -26,7 +26,7 @@ var RenderPlanCmd = &cli.Command{
 }
 
 func doRenderPlan() error {
-	libs.WriteOutputf("Planning inventory %s\n", initialInventoryFile)
+	libs.WriteTitle("Plan %s", initialInventoryFile)
 
 	if initialInventoryFile == "" {
 		initialInventoryFile = "./k2.inventory.yaml"
@@ -40,9 +40,9 @@ func doRenderPlan() error {
 	if err != nil {
 		return err
 	}
-	libs.WriteOutputf("PLAN RESULT: %d\n", len(plan.Tasks))
+	libs.WriteDetail("%d actions planned", len(plan.Tasks))
 	for _, r := range plan.Tasks {
-		libs.WriteOutputf("WILL DO ACTION: %v\n", r)
+		libs.WriteStep(libs.IconPlan, "%v", r)
 	}
 
 	return nil

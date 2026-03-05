@@ -7,7 +7,7 @@ import (
 
 func (t *TemplatingStore) resolveTemplateInventory(hash string) (*types.IK2Template, error) {
 
-	libs.WriteOutputf("resolve template inventory %s\n", hash)
+	libs.WriteStep(libs.IconResolve, "resolve %s (inventory)", hash)
 
 	refs := t.plan.Refs
 
