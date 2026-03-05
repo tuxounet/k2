@@ -22,9 +22,9 @@ func main() {
 		EnableShellCompletion: true,
 		Description:           "k2 is a template engine",
 		Commands: []*cli.Command{
-			cmds.PlanCmd,
-			cmds.ApplyCmd,
-			cmds.DestroyCmd,
+			cmds.RenderPlanCmd,
+			cmds.RenderCmd,
+			cmds.UnrenderCmd,
 		},
 	}
 

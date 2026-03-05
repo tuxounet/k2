@@ -2,13 +2,13 @@
 
 ## Description
 
-k2 automatically generates a `.gitignore` file in each folder where a template is applied. This file lists all generated files, allowing them to be excluded from version control and cleanly deleted during destroy.
+k2 automatically generates a `.gitignore` file in each folder where a template is rendered. This file lists all generated files, allowing them to be excluded from version control and cleanly deleted during unrender.
 
 ## `.gitignore` Generation
 
 ### Content
 
-On each apply, the `.gitignore` is regenerated with:
+On each render, the `.gitignore` is regenerated with:
 
 1. The entry `!k2.apply.yaml` — protects the apply file from Git exclusion
 2. For each template file:
@@ -57,9 +57,9 @@ Each file is read then rendered via the Go template + Sprig engine with the merg
 
 If a template file is located in a subfolder, it is automatically created in the target folder.
 
-## Deletion During Destroy
+## Deletion During Unrender
 
-During `destroy`:
+During `unrender`:
 
 1. The `.gitignore` file from the target folder is read
 2. The `.gitignore` line is added to the list of files to delete
@@ -74,7 +74,7 @@ During `destroy`:
 
 An apply folder can contain custom files that do not come from the template. These files:
 - Are not listed in the generated `.gitignore`
-- Are therefore **not deleted** during destroy
+- Are therefore **not deleted** during unrender
 - Coexist with generated files
 
 See [12-custom-files.md](12-custom-files.md) for more details.

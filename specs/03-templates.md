@@ -51,10 +51,10 @@ k2:
 
 | Phase | Description |
 |-------|-------------|
-| `bootstrap` | Executed only once, during the first apply |
-| `pre` | Executed before file copying, on each apply |
-| `post` | Executed after file copying, on each apply |
-| `nuke` | Executed during destroy |
+| `bootstrap` | Executed only once, during the first render |
+| `pre` | Executed before file copying, on each render |
+| `post` | Executed after file copying, on each render |
+| `nuke` | Executed during unrender |
 
 See [07-scripts-lifecycle.md](07-scripts-lifecycle.md) for script details.
 
@@ -65,7 +65,7 @@ All files present in the same folder as `k2.template.yaml` (and its subfolders) 
 - `.DS_Store`
 - The `.git` folder and its contents
 
-These files are copied to the target folder during apply, with Go template expression rendering.
+These files are copied to the target folder during render, with Go template expression rendering.
 
 ## Examples (from samples)
 

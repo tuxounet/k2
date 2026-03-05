@@ -2,17 +2,17 @@
 
 ## Description
 
-An apply folder can contain additional files that do not come from the template. These custom files coexist with the generated files and are preserved during apply and destroy operations.
+An apply folder can contain additional files that do not come from the template. These custom files coexist with the generated files and are preserved during render and unrender operations.
 
 ## Mechanism
 
-### During Apply
+### During Render
 
-Files already present in the target folder that are not part of the template are neither modified nor deleted. Apply only affects:
-- Files copied from the template (overwritten on each apply)
+Files already present in the target folder that are not part of the template are neither modified nor deleted. Render only affects:
+- Files copied from the template (overwritten on each render)
 - The `.gitignore` (regenerated)
 
-### During Destroy
+### During Unrender
 
 Only files listed in the `.gitignore` are deleted. Custom files, not being referenced in the `.gitignore`, are preserved.
 
@@ -58,8 +58,8 @@ avec du contneu
 
 ### Behavior
 
-1. **apply**: template files from `with-placeholder` (e.g., `README.md`) are copied and rendered. The `files/` folder and `MMM.md` are not touched.
-2. **destroy**: only files listed in the `.gitignore` (e.g., `README.md`) are deleted. `files/MMM.md` is preserved.
+1. **render**: template files from `with-placeholder` (e.g., `README.md`) are copied and rendered. The `files/` folder and `MMM.md` are not touched.
+2. **unrender**: only files listed in the `.gitignore` (e.g., `README.md`) are deleted. `files/MMM.md` is preserved.
 
 ## Use Cases
 

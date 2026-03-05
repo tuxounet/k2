@@ -2,24 +2,24 @@
 
 ## Description
 
-k2 supports four script phases that allow executing shell commands at different points in the lifecycle of an apply. Scripts can be defined at two levels: in the **template** and in the **apply**.
+k2 supports four script phases that allow executing shell commands at different points in the lifecycle of a render. Scripts can be defined at two levels: in the **template** and in the **apply**.
 
 ## Phases
 
 | Phase | Execution Time | Frequency |
 |-------|----------------|-----------|
-| `bootstrap` | Before any other action, during the very first apply | Once only |
-| `pre` | Before file copying | On each apply |
-| `post` | After file copying | On each apply |
-| `nuke` | During destroy, before file deletion | On each destroy |
+| `bootstrap` | Before any other action, during the very first render | Once only |
+| `pre` | Before file copying | On each render |
+| `post` | After file copying | On each render |
+| `nuke` | During unrender, before file deletion | On each unrender |
 
 ## Execution Order
 
-During an **apply**:
+During a **render**:
 
 ```
-1. [If first apply] template.scripts.bootstrap
-2. [If first apply] apply.scripts.bootstrap
+1. [If first render] template.scripts.bootstrap
+2. [If first render] apply.scripts.bootstrap
 3. template.scripts.pre
 4. apply.scripts.pre
 5. ── Template file copying ──
@@ -27,7 +27,7 @@ During an **apply**:
 7. apply.scripts.post
 ```
 
-During a **destroy**:
+During an **unrender**:
 
 ```
 1. template.scripts.post (if the template is resolved)

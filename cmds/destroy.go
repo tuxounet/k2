@@ -9,9 +9,9 @@ import (
 	"github.com/urfave/cli/v3"
 )
 
-var DestroyCmd = &cli.Command{
-	Name:  "destroy",
-	Usage: "destroy the generated files",
+var UnrenderCmd = &cli.Command{
+	Name:  "unrender",
+	Usage: "unrender the generated files",
 	Flags: []cli.Flag{
 		&cli.StringFlag{
 			Name:        "inventory",
@@ -21,12 +21,12 @@ var DestroyCmd = &cli.Command{
 		},
 	},
 	Action: func(context.Context, *cli.Command) error {
-		return doDestroy()
+		return doUnrender()
 	},
 }
 
-func doDestroy() error {
-	libs.WriteOutputf("Destroy inventory %s\n", initialInventoryFile)
+func doUnrender() error {
+	libs.WriteOutputf("Unrendering inventory %s\n", initialInventoryFile)
 
 	if initialInventoryFile == "" {
 		initialInventoryFile = "./k2.inventory.yaml"

@@ -4,7 +4,7 @@
 
 k2 lets you define reusable templates, organize them in an inventory, and
 generate entire project trees with a single command.
-It follows a simple three-phase lifecycle: **Plan → Apply → Destroy**.
+It follows a simple three-phase lifecycle: **Render-plan → Render → Unrender**.
 
 > **Status:** Beta — actively developed, feedback welcome.
 
@@ -18,7 +18,7 @@ It follows a simple three-phase lifecycle: **Plan → Apply → Destroy**.
 - **Git sources** — pull templates straight from remote Git repositories.
 - **Nested templates** — templates can contain other templates.
 - **Lifecycle scripts** — hook into bootstrap, pre, post and nuke phases.
-- **Idempotent** — plan before you apply, destroy when you're done.
+- **Idempotent** — plan before you render, unrender when you're done.
 
 ---
 
@@ -49,21 +49,21 @@ rm "$(go env GOPATH)/bin/k2"
 k2 exposes three commands. Each accepts an optional `--inventory` flag
 (defaults to `./k2.inventory.yaml`).
 
-| Command     | Description                                          |
-|-------------|------------------------------------------------------|
-| **plan**    | Preview the execution plan without changing anything |
-| **apply**   | Generate files from templates                        |
-| **destroy** | Remove all generated files                           |
+| Command          | Description                                          |
+|------------------|------------------------------------------------------|
+| **render-plan**  | Preview the execution plan without changing anything |
+| **render**       | Generate files from templates                        |
+| **unrender**     | Remove all generated files                           |
 
 ```bash
 # Preview what will happen
-k2 plan --inventory ./k2.inventory.yaml
+k2 render-plan --inventory ./k2.inventory.yaml
 
-# Apply templates
-k2 apply --inventory ./k2.inventory.yaml
+# Render templates
+k2 render --inventory ./k2.inventory.yaml
 
 # Clean up generated files
-k2 destroy --inventory ./k2.inventory.yaml
+k2 unrender --inventory ./k2.inventory.yaml
 ```
 
 ---

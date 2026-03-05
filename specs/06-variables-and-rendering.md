@@ -35,7 +35,7 @@ Apply variables (`body.vars`) support all YAML types:
 
 ## File Rendering
 
-During apply, each template file is read, rendered with the merged variables, then written to the target folder.
+During render, each template file is read, rendered with the merged variables, then written to the target folder.
 
 ### Go Template Syntax
 

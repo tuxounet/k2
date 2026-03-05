@@ -13,7 +13,7 @@ This folder contains the comprehensive technical documentation for all features 
 | [05-template-sources.md](05-template-sources.md) | Template sources: inventory and git |
 | [06-variables-and-rendering.md](06-variables-and-rendering.md) | Variables, template rendering and Sprig functions |
 | [07-scripts-lifecycle.md](07-scripts-lifecycle.md) | Lifecycle scripts (bootstrap, pre, post, nuke) |
-| [08-cli-commands.md](08-cli-commands.md) | CLI commands: plan, apply, destroy |
+| [08-cli-commands.md](08-cli-commands.md) | CLI commands: render-plan, render, unrender |
 | [09-gitignore-and-files.md](09-gitignore-and-files.md) | `.gitignore` management and generated files |
 | [10-deduplication.md](10-deduplication.md) | Task deduplication and hashing |
 | [11-nested-templates.md](11-nested-templates.md) | Nested templates (template within a template) |

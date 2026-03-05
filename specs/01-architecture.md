@@ -2,7 +2,7 @@
 
 ## Overview
 
-k2 is a declarative template engine written in Go. It generates files from templates using a declarative YAML configuration. The system follows a three-phase cycle: **plan**, **apply**, **destroy**.
+k2 is a declarative template engine written in Go. It generates files from templates using a declarative YAML configuration. The system follows a three-phase cycle: **render-plan**, **render**, **unrender**.
 
 ## Core Concepts
 
@@ -44,7 +44,7 @@ Each entity has metadata:
 ```
 ┌─────────────────────────────────────┐
 │         CLI (cmds/)                 │  ← User entry point
-│   plan │ apply │ destroy            │
+│   render-plan │ render │ unrender            │
 ├─────────────────────────────────────┤
 │         Inventory (stores/)         │  ← Workflow orchestration
 ├─────────────────────────────────────┤
@@ -92,8 +92,8 @@ Task types:
 Manages template resolution and application:
 - **Inventory resolution**: finds a template by its ID in the inventory
 - **Git resolution**: clones/updates a repository and extracts the template
-- **Apply**: copies template files, performs rendering, creates the `.gitignore`
-- **Destroy**: deletes files listed in the `.gitignore`
+- **Render**: copies template files, performs rendering, creates the `.gitignore`
+- **Unrender**: deletes files listed in the `.gitignore`
 
 ### Libs (`libs/`)
 

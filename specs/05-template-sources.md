@@ -92,7 +92,7 @@ my-project/
 │           └── README.md
 ```
 
-During `destroy`, the `.refs/<hash>/` folders corresponding to Git templates are also deleted.
+During `unrender`, the `.refs/<hash>/` folders corresponding to Git templates are also deleted.
 
 ### Example
 

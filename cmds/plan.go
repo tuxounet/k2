@@ -9,8 +9,8 @@ import (
 	"github.com/urfave/cli/v3"
 )
 
-var PlanCmd = &cli.Command{
-	Name:  "plan",
+var RenderPlanCmd = &cli.Command{
+	Name:  "render-plan",
 	Usage: "plan all elements in current inventory folder",
 	Flags: []cli.Flag{
 		&cli.StringFlag{
@@ -21,11 +21,11 @@ var PlanCmd = &cli.Command{
 		},
 	},
 	Action: func(context.Context, *cli.Command) error {
-		return doPlan()
+		return doRenderPlan()
 	},
 }
 
-func doPlan() error {
+func doRenderPlan() error {
 	libs.WriteOutputf("Planning inventory %s\n", initialInventoryFile)
 
 	if initialInventoryFile == "" {

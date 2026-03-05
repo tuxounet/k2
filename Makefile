@@ -3,7 +3,7 @@
 #
 #  k2 lets you define reusable templates, wire them into an
 #  inventory, and generate entire project trees with a single
-#  command.  Plan → Apply → Destroy — simple as that.
+#  command.  Render-plan → Render → Unrender — simple as that.
 #
 #  Run `make` or `make help` to see available targets.
 # ─────────────────────────────────────────────────────────────
@@ -49,13 +49,13 @@ coverage: ## Run tests with coverage report
 	go test -v -coverprofile=coverage.out ./...
 
 # ── Samples (quick try with the bundled inventory) ───────────
-plan: ## Plan changes using the sample inventory
-	go run ./main.go plan --inventory ./samples/k2.inventory.yaml
+render-plan: ## Plan changes using the sample inventory
+	go run ./main.go render-plan --inventory ./samples/k2.inventory.yaml
 
-apply: ## Apply templates using the sample inventory
-	go run ./main.go apply --inventory ./samples/k2.inventory.yaml
+render: ## Render templates using the sample inventory
+	go run ./main.go render --inventory ./samples/k2.inventory.yaml
 
-destroy: ## Destroy generated files using the sample inventory
-	go run ./main.go destroy --inventory ./samples/k2.inventory.yaml
+unrender: ## Unrender generated files using the sample inventory
+	go run ./main.go unrender --inventory ./samples/k2.inventory.yaml
 
-.PHONY: help write-version run build bump-patch test coverage plan apply destroy
+.PHONY: help write-version run build bump-patch test coverage render-plan render unrender
