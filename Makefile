@@ -19,6 +19,9 @@ bump-patch: build
 	@bash ./tools/bump-patch.sh
 test:
 	go test -v ./...
+coverage:
+	go test -v -coverprofile=coverage.out ./...
+ 
 
 plan:
 	go run ./main.go plan  --inventory ./samples/k2.inventory.yaml
