@@ -17,6 +17,14 @@ const (
 	IconPlan    = yellowColor + "▪" + resetColor
 )
 
+func CyanColor() string { return cyanColor }
+func GreenCol() string  { return greenColor }
+func GrayColor() string { return grayColor }
+func BoldStyle() string { return boldStyle }
+func ResetCol() string  { return resetColor }
+func RedColor() string  { return redColor }
+func YellowCol() string { return yellowColor }
+
 func WriteBanner(version string) {
 	fmt.Printf("%s%sK2%s %s%s%s by %sKrux%s %s(github.com/tuxounet/k2)%s\n", boldStyle, cyanColor, resetColor, yellowColor, version, resetColor, boldStyle, resetColor, grayColor, resetColor)
 }

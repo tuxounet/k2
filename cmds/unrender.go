@@ -10,8 +10,9 @@ import (
 )
 
 var UnrenderCmd = &cli.Command{
-	Name:  "unrender",
-	Usage: "unrender the generated files",
+	Name:    "unrender",
+	Aliases: []string{"destroy"},
+	Usage:   "unrender the generated files",
 	Flags: []cli.Flag{
 		&cli.StringFlag{
 			Name:        "inventory",

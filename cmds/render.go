@@ -9,8 +9,9 @@ import (
 )
 
 var RenderCmd = &cli.Command{
-	Name:  "render",
-	Usage: "render all elements in current inventory folder",
+	Name:    "render",
+	Aliases: []string{"apply"},
+	Usage:   "render all elements in current inventory folder",
 	Flags: []cli.Flag{
 		&cli.StringFlag{
 			Name:        "inventory",

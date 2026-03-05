@@ -31,6 +31,7 @@ func main() {
 			cmds.RenderPlanCmd,
 			cmds.RenderCmd,
 			cmds.UnrenderCmd,
+			cmds.StackCmd,
 		},
 	}
 
