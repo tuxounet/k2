@@ -3,6 +3,7 @@ package stores
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -294,5 +295,708 @@ func TestLayerRunHook_WithHook(t *testing.T) {
 
 	if _, err := os.Stat(markerFile); os.IsNotExist(err) {
 		t.Fatal("hook did not run - marker file not created")
+	}
+}
+
+// --- layerResolvePath ---
+
+func TestLayerResolvePath(t *testing.T) {
+	result := layerResolvePath("/project", "layers/1.services", "my-plan")
+	expected := filepath.Join("/project", "layers/1.services", "my-plan")
+	if result != expected {
+		t.Fatalf("expected %s, got %s", expected, result)
+	}
+}
+
+// --- layerStart ---
+
+func TestLayerStart(t *testing.T) {
+	tmpDir := t.TempDir()
+	verbsDir := filepath.Join(tmpDir, "verbs")
+	os.MkdirAll(verbsDir, 0755)
+	marker := filepath.Join(tmpDir, "started")
+	os.WriteFile(filepath.Join(verbsDir, "up.sh"), []byte("#!/bin/bash\ntouch "+marker), 0755)
+
+	err := layerStart(tmpDir)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if _, err := os.Stat(marker); os.IsNotExist(err) {
+		t.Fatal("up.sh did not run")
+	}
+}
+
+func TestLayerStart_Failure(t *testing.T) {
+	tmpDir := t.TempDir()
+	verbsDir := filepath.Join(tmpDir, "verbs")
+	os.MkdirAll(verbsDir, 0755)
+	os.WriteFile(filepath.Join(verbsDir, "up.sh"), []byte("#!/bin/bash\nexit 1"), 0755)
+
+	err := layerStart(tmpDir)
+	if err == nil {
+		t.Fatal("expected error from failing up.sh")
+	}
+}
+
+// --- layerStop ---
+
+func TestLayerStop(t *testing.T) {
+	tmpDir := t.TempDir()
+	verbsDir := filepath.Join(tmpDir, "verbs")
+	os.MkdirAll(verbsDir, 0755)
+	marker := filepath.Join(tmpDir, "stopped")
+	os.WriteFile(filepath.Join(verbsDir, "down.sh"), []byte("#!/bin/bash\ntouch "+marker), 0755)
+
+	err := layerStop(tmpDir)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if _, err := os.Stat(marker); os.IsNotExist(err) {
+		t.Fatal("down.sh did not run")
+	}
+}
+
+func TestLayerStop_NoDownScript(t *testing.T) {
+	tmpDir := t.TempDir()
+	err := layerStop(tmpDir)
+	if err != nil {
+		t.Fatalf("expected nil when no down.sh, got: %v", err)
+	}
+}
+
+func TestLayerStop_Failure(t *testing.T) {
+	tmpDir := t.TempDir()
+	verbsDir := filepath.Join(tmpDir, "verbs")
+	os.MkdirAll(verbsDir, 0755)
+	os.WriteFile(filepath.Join(verbsDir, "down.sh"), []byte("#!/bin/bash\nexit 1"), 0755)
+
+	err := layerStop(tmpDir)
+	if err == nil {
+		t.Fatal("expected error from failing down.sh")
+	}
+}
+
+// --- layerStatus ---
+
+func TestLayerStatus_WithStatusScript(t *testing.T) {
+	tmpDir := t.TempDir()
+	verbsDir := filepath.Join(tmpDir, "verbs")
+	os.MkdirAll(verbsDir, 0755)
+	os.WriteFile(filepath.Join(verbsDir, "up.sh"), []byte("echo up"), 0644)
+	os.WriteFile(filepath.Join(verbsDir, "status.sh"), []byte("#!/bin/bash\necho running"), 0755)
+
+	status := layerStatus(tmpDir)
+	if status != "RUNNING" {
+		t.Fatalf("expected RUNNING, got %s", status)
+	}
+}
+
+func TestLayerStatus_NoStatusScript_Shell(t *testing.T) {
+	tmpDir := t.TempDir()
+	verbsDir := filepath.Join(tmpDir, "verbs")
+	os.MkdirAll(verbsDir, 0755)
+	os.WriteFile(filepath.Join(verbsDir, "up.sh"), []byte("echo up"), 0644)
+
+	status := layerStatus(tmpDir)
+	if status != "PRESENT" {
+		t.Fatalf("expected PRESENT, got %s", status)
+	}
+}
+
+func TestLayerStatus_NoStatusScript_Unknown(t *testing.T) {
+	tmpDir := t.TempDir()
+	status := layerStatus(tmpDir)
+	if status != "UNKNOWN" {
+		t.Fatalf("expected UNKNOWN, got %s", status)
+	}
+}
+
+func TestLayerStatus_StatusScriptFails(t *testing.T) {
+	tmpDir := t.TempDir()
+	verbsDir := filepath.Join(tmpDir, "verbs")
+	os.MkdirAll(verbsDir, 0755)
+	os.WriteFile(filepath.Join(verbsDir, "status.sh"), []byte("#!/bin/bash\nexit 1"), 0755)
+
+	status := layerStatus(tmpDir)
+	if status != "DOWN" {
+		t.Fatalf("expected DOWN, got %s", status)
+	}
+}
+
+func TestLayerStatus_EmptyOutput(t *testing.T) {
+	tmpDir := t.TempDir()
+	verbsDir := filepath.Join(tmpDir, "verbs")
+	os.MkdirAll(verbsDir, 0755)
+	os.WriteFile(filepath.Join(verbsDir, "status.sh"), []byte("#!/bin/bash\necho ''"), 0755)
+
+	status := layerStatus(tmpDir)
+	if status != "UNKNOWN" {
+		t.Fatalf("expected UNKNOWN, got %s", status)
+	}
+}
+
+// --- layerHealthcheck ---
+
+func TestLayerHealthcheck_OK(t *testing.T) {
+	tmpDir := t.TempDir()
+	applyContent := `k2:
+  body:
+    hooks:
+      healthcheck: "true"
+`
+	os.WriteFile(filepath.Join(tmpDir, "k2.apply.yaml"), []byte(applyContent), 0644)
+
+	result := layerHealthcheck(tmpDir)
+	if result != "OK" {
+		t.Fatalf("expected OK, got %s", result)
+	}
+}
+
+func TestLayerHealthcheck_Fail(t *testing.T) {
+	tmpDir := t.TempDir()
+	applyContent := `k2:
+  body:
+    hooks:
+      healthcheck: "false"
+`
+	os.WriteFile(filepath.Join(tmpDir, "k2.apply.yaml"), []byte(applyContent), 0644)
+
+	result := layerHealthcheck(tmpDir)
+	if result != "FAIL" {
+		t.Fatalf("expected FAIL, got %s", result)
+	}
+}
+
+func TestLayerHealthcheck_NoHook(t *testing.T) {
+	tmpDir := t.TempDir()
+	result := layerHealthcheck(tmpDir)
+	if result != "OK" {
+		t.Fatalf("expected OK (no hook = pass), got %s", result)
+	}
+}
+
+// --- layerGetURL ---
+
+func TestLayerGetURL_WithLinks(t *testing.T) {
+	tmpDir := t.TempDir()
+	os.WriteFile(filepath.Join(tmpDir, "links.env"), []byte("Web=http://localhost:3000\nAPI=http://localhost:4000\n"), 0644)
+
+	url := layerGetURL(tmpDir)
+	if url != "http://localhost:3000" {
+		t.Fatalf("expected first URL, got %s", url)
+	}
+}
+
+func TestLayerGetURL_NoLinks(t *testing.T) {
+	tmpDir := t.TempDir()
+	url := layerGetURL(tmpDir)
+	if url != "" {
+		t.Fatalf("expected empty, got %s", url)
+	}
+}
+
+// --- layerLogs ---
+
+func TestLayerLogs(t *testing.T) {
+	tmpDir := t.TempDir()
+	verbsDir := filepath.Join(tmpDir, "verbs")
+	os.MkdirAll(verbsDir, 0755)
+	os.WriteFile(filepath.Join(verbsDir, "logs.sh"), []byte("#!/bin/bash\necho log-output"), 0755)
+
+	err := layerLogs(tmpDir)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestLayerLogs_NoScript(t *testing.T) {
+	tmpDir := t.TempDir()
+	err := layerLogs(tmpDir)
+	if err == nil {
+		t.Fatal("expected error when no logs.sh")
+	}
+	if !strings.Contains(err.Error(), "no logs verb") {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+// --- layerShell ---
+
+func TestLayerShell_NoScript(t *testing.T) {
+	tmpDir := t.TempDir()
+	err := layerShell(tmpDir)
+	if err == nil {
+		t.Fatal("expected error when no shell.sh")
+	}
+	if !strings.Contains(err.Error(), "no shell verb") {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+// --- layerRunVerb ---
+
+func TestLayerRunVerb(t *testing.T) {
+	tmpDir := t.TempDir()
+	verbsDir := filepath.Join(tmpDir, "verbs")
+	os.MkdirAll(verbsDir, 0755)
+	marker := filepath.Join(tmpDir, "verb_ran")
+	os.WriteFile(filepath.Join(verbsDir, "custom.sh"), []byte("#!/bin/bash\ntouch "+marker), 0755)
+
+	err := layerRunVerb(tmpDir, "custom", nil)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if _, err := os.Stat(marker); os.IsNotExist(err) {
+		t.Fatal("verb did not run")
+	}
+}
+
+func TestLayerRunVerb_WithArgs(t *testing.T) {
+	tmpDir := t.TempDir()
+	verbsDir := filepath.Join(tmpDir, "verbs")
+	os.MkdirAll(verbsDir, 0755)
+	outFile := filepath.Join(tmpDir, "args_out")
+	os.WriteFile(filepath.Join(verbsDir, "test.sh"), []byte("#!/bin/bash\necho \"$@\" > "+outFile), 0755)
+
+	err := layerRunVerb(tmpDir, "test", []string{"arg1", "arg2"})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	data, _ := os.ReadFile(outFile)
+	if strings.TrimSpace(string(data)) != "arg1 arg2" {
+		t.Fatalf("expected 'arg1 arg2', got '%s'", strings.TrimSpace(string(data)))
+	}
+}
+
+func TestLayerRunVerb_NotFound_WithVerbs(t *testing.T) {
+	tmpDir := t.TempDir()
+	verbsDir := filepath.Join(tmpDir, "verbs")
+	os.MkdirAll(verbsDir, 0755)
+	os.WriteFile(filepath.Join(verbsDir, "up.sh"), []byte("echo up"), 0644)
+
+	err := layerRunVerb(tmpDir, "nonexistent", nil)
+	if err == nil {
+		t.Fatal("expected error")
+	}
+	if !strings.Contains(err.Error(), "not found") || !strings.Contains(err.Error(), "Available: up") {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestLayerRunVerb_NotFound_NoVerbs(t *testing.T) {
+	tmpDir := t.TempDir()
+	err := layerRunVerb(tmpDir, "nonexistent", nil)
+	if err == nil {
+		t.Fatal("expected error")
+	}
+	if !strings.Contains(err.Error(), "no verbs available") {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+// --- exportEnvMap ---
+
+func TestExportEnvMap(t *testing.T) {
+	exportEnvMap(map[string]string{
+		"TEST_EXPORT_A": "val_a",
+		"TEST_EXPORT_B": "val_b",
+	})
+	defer os.Unsetenv("TEST_EXPORT_A")
+	defer os.Unsetenv("TEST_EXPORT_B")
+
+	if os.Getenv("TEST_EXPORT_A") != "val_a" {
+		t.Fatalf("expected val_a, got %s", os.Getenv("TEST_EXPORT_A"))
+	}
+	if os.Getenv("TEST_EXPORT_B") != "val_b" {
+		t.Fatalf("expected val_b, got %s", os.Getenv("TEST_EXPORT_B"))
+	}
+}
+
+// --- loadDefaultsEnv ---
+
+func TestLoadDefaultsEnv(t *testing.T) {
+	tmpDir := t.TempDir()
+	os.WriteFile(filepath.Join(tmpDir, "defaults.env"), []byte("DEFAULT_KEY=default_val\n"), 0644)
+
+	loadDefaultsEnv(tmpDir)
+	defer os.Unsetenv("DEFAULT_KEY")
+
+	if os.Getenv("DEFAULT_KEY") != "default_val" {
+		t.Fatalf("expected default_val, got %s", os.Getenv("DEFAULT_KEY"))
+	}
+}
+
+func TestLoadDefaultsEnv_NoFile(t *testing.T) {
+	tmpDir := t.TempDir()
+	// Should not panic
+	loadDefaultsEnv(tmpDir)
+}
+
+// --- StackStore.loadEnv ---
+
+func TestStackStore_LoadEnv(t *testing.T) {
+	tmpDir := t.TempDir()
+	stacksDir := filepath.Join(tmpDir, "stacks")
+	os.MkdirAll(stacksDir, 0755)
+
+	os.WriteFile(filepath.Join(tmpDir, ".env"), []byte("ROOT_VAR=root_val\n"), 0644)
+	os.WriteFile(filepath.Join(stacksDir, "test.yaml"), []byte(`version: v0
+stack:
+  env:
+    STACK_VAR: stack_val
+  layers: []
+`), 0644)
+
+	store, _ := NewStackStore(tmpDir, "test", false)
+	store.loadEnv()
+	defer os.Unsetenv("ROOT_VAR")
+	defer os.Unsetenv("STACK_VAR")
+
+	if os.Getenv("ROOT_VAR") != "root_val" {
+		t.Fatalf("expected root_val, got %s", os.Getenv("ROOT_VAR"))
+	}
+	if os.Getenv("STACK_VAR") != "stack_val" {
+		t.Fatalf("expected stack_val, got %s", os.Getenv("STACK_VAR"))
+	}
+}
+
+// --- StackStore.exportLayerEnv ---
+
+func TestStackStore_ExportLayerEnv(t *testing.T) {
+	tmpDir := t.TempDir()
+	stacksDir := filepath.Join(tmpDir, "stacks")
+	os.MkdirAll(stacksDir, 0755)
+
+	planDir := filepath.Join(tmpDir, "layers", "1.svc", "myplan")
+	os.MkdirAll(planDir, 0755)
+	os.WriteFile(filepath.Join(planDir, "defaults.env"), []byte("DEF_VAR=def_val\n"), 0644)
+
+	os.WriteFile(filepath.Join(stacksDir, "test.yaml"), []byte(`version: v0
+stack:
+  layers:
+    - layer: layers/1.svc
+      plan: myplan
+      env:
+        LAYER_VAR: layer_val
+`), 0644)
+
+	store, _ := NewStackStore(tmpDir, "test", false)
+	store.exportLayerEnv(0)
+	defer os.Unsetenv("LAYER_VAR")
+	defer os.Unsetenv("DEF_VAR")
+
+	if os.Getenv("LAYER_VAR") != "layer_val" {
+		t.Fatalf("expected layer_val, got %s", os.Getenv("LAYER_VAR"))
+	}
+	if os.Getenv("DEF_VAR") != "def_val" {
+		t.Fatalf("expected def_val, got %s", os.Getenv("DEF_VAR"))
+	}
+}
+
+// --- StackStore.Up ---
+
+func createTestStack(t *testing.T) (string, *StackStore) {
+	t.Helper()
+	tmpDir := t.TempDir()
+	stacksDir := filepath.Join(tmpDir, "stacks")
+	os.MkdirAll(stacksDir, 0755)
+
+	// Create layer with verbs
+	planDir := filepath.Join(tmpDir, "layers", "1.svc", "app")
+	verbsDir := filepath.Join(planDir, "verbs")
+	os.MkdirAll(verbsDir, 0755)
+	os.WriteFile(filepath.Join(verbsDir, "up.sh"), []byte("#!/bin/bash\ntouch "+filepath.Join(planDir, "up_marker")), 0755)
+	os.WriteFile(filepath.Join(verbsDir, "down.sh"), []byte("#!/bin/bash\ntouch "+filepath.Join(planDir, "down_marker")), 0755)
+	os.WriteFile(filepath.Join(verbsDir, "status.sh"), []byte("#!/bin/bash\necho UP"), 0755)
+	os.WriteFile(filepath.Join(verbsDir, "logs.sh"), []byte("#!/bin/bash\necho app-logs"), 0755)
+	os.WriteFile(filepath.Join(planDir, "links.env"), []byte("App=http://localhost:8080\n"), 0644)
+
+	os.WriteFile(filepath.Join(stacksDir, "test.yaml"), []byte(`version: v0
+stack:
+  description: "Test"
+  layers:
+    - layer: layers/1.svc
+      plan: app
+`), 0644)
+
+	store, err := NewStackStore(tmpDir, "test", false)
+	if err != nil {
+		t.Fatalf("setup failed: %v", err)
+	}
+	return tmpDir, store
+}
+
+func TestStackStore_Up(t *testing.T) {
+	tmpDir, store := createTestStack(t)
+
+	err := store.Up()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	marker := filepath.Join(tmpDir, "layers", "1.svc", "app", "up_marker")
+	if _, err := os.Stat(marker); os.IsNotExist(err) {
+		t.Fatal("up.sh did not run during Up()")
+	}
+}
+
+func TestStackStore_Down(t *testing.T) {
+	tmpDir, store := createTestStack(t)
+
+	err := store.Down()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	marker := filepath.Join(tmpDir, "layers", "1.svc", "app", "down_marker")
+	if _, err := os.Stat(marker); os.IsNotExist(err) {
+		t.Fatal("down.sh did not run during Down()")
+	}
+}
+
+func TestStackStore_Restart(t *testing.T) {
+	tmpDir, store := createTestStack(t)
+
+	err := store.Restart()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	upMarker := filepath.Join(tmpDir, "layers", "1.svc", "app", "up_marker")
+	downMarker := filepath.Join(tmpDir, "layers", "1.svc", "app", "down_marker")
+	if _, err := os.Stat(upMarker); os.IsNotExist(err) {
+		t.Fatal("up.sh did not run during Restart()")
+	}
+	if _, err := os.Stat(downMarker); os.IsNotExist(err) {
+		t.Fatal("down.sh did not run during Restart()")
+	}
+}
+
+func TestStackStore_Status(t *testing.T) {
+	_, store := createTestStack(t)
+
+	err := store.Status()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestStackStore_Healthcheck(t *testing.T) {
+	_, store := createTestStack(t)
+
+	err := store.Healthcheck()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestStackStore_Urls(t *testing.T) {
+	_, store := createTestStack(t)
+
+	err := store.Urls()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestStackStore_Urls_NoLinks(t *testing.T) {
+	tmpDir := t.TempDir()
+	stacksDir := filepath.Join(tmpDir, "stacks")
+	os.MkdirAll(stacksDir, 0755)
+
+	planDir := filepath.Join(tmpDir, "layers", "1.svc", "app", "verbs")
+	os.MkdirAll(planDir, 0755)
+	os.WriteFile(filepath.Join(planDir, "up.sh"), []byte("echo up"), 0644)
+
+	os.WriteFile(filepath.Join(stacksDir, "test.yaml"), []byte(`version: v0
+stack:
+  layers:
+    - layer: layers/1.svc
+      plan: app
+`), 0644)
+
+	store, _ := NewStackStore(tmpDir, "test", false)
+	err := store.Urls()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+// --- StackStore.Run ---
+
+func TestStackStore_Run_ListVerbs(t *testing.T) {
+	_, store := createTestStack(t)
+
+	err := store.Run("app", "", nil)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestStackStore_Run_ExecuteVerb(t *testing.T) {
+	tmpDir, store := createTestStack(t)
+	marker := filepath.Join(tmpDir, "layers", "1.svc", "app", "custom_ran")
+
+	verbsDir := filepath.Join(tmpDir, "layers", "1.svc", "app", "verbs")
+	os.WriteFile(filepath.Join(verbsDir, "custom.sh"), []byte("#!/bin/bash\ntouch "+marker), 0755)
+
+	err := store.Run("app", "custom", nil)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if _, err := os.Stat(marker); os.IsNotExist(err) {
+		t.Fatal("custom verb did not run")
+	}
+}
+
+func TestStackStore_Run_LayerNotFound(t *testing.T) {
+	_, store := createTestStack(t)
+
+	err := store.Run("nonexistent", "up", nil)
+	if err == nil {
+		t.Fatal("expected error for nonexistent layer")
+	}
+	if !strings.Contains(err.Error(), "not found") {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+// --- StackStore.Logs ---
+
+func TestStackStore_Logs_TargetLayer(t *testing.T) {
+	_, store := createTestStack(t)
+
+	err := store.Logs("app")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestStackStore_Logs_TargetNotFound(t *testing.T) {
+	_, store := createTestStack(t)
+
+	err := store.Logs("nonexistent")
+	if err == nil {
+		t.Fatal("expected error")
+	}
+	if !strings.Contains(err.Error(), "not found") {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+// --- StackStore.Shell ---
+
+func TestStackStore_Shell_TargetNotFound(t *testing.T) {
+	_, store := createTestStack(t)
+
+	err := store.Shell("nonexistent")
+	if err == nil {
+		t.Fatal("expected error")
+	}
+	if !strings.Contains(err.Error(), "not found") {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestStackStore_Shell_NoRecipe(t *testing.T) {
+	tmpDir := t.TempDir()
+	stacksDir := filepath.Join(tmpDir, "stacks")
+	os.MkdirAll(stacksDir, 0755)
+
+	planDir := filepath.Join(tmpDir, "layers", "1.svc", "app")
+	os.MkdirAll(planDir, 0755)
+	// No verbs dir = unknown recipe
+
+	os.WriteFile(filepath.Join(stacksDir, "test.yaml"), []byte(`version: v0
+stack:
+  layers:
+    - layer: layers/1.svc
+      plan: app
+`), 0644)
+
+	store, _ := NewStackStore(tmpDir, "test", false)
+	err := store.Shell("")
+	if err == nil {
+		t.Fatal("expected error when no recipe found")
+	}
+	if !strings.Contains(err.Error(), "no layer with recipe") {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+// --- Up/Down with missing layer dir ---
+
+func TestStackStore_Up_MissingLayerDir(t *testing.T) {
+	tmpDir := t.TempDir()
+	stacksDir := filepath.Join(tmpDir, "stacks")
+	os.MkdirAll(stacksDir, 0755)
+
+	os.WriteFile(filepath.Join(stacksDir, "test.yaml"), []byte(`version: v0
+stack:
+  layers:
+    - layer: layers/missing
+      plan: gone
+`), 0644)
+
+	store, _ := NewStackStore(tmpDir, "test", false)
+	err := store.Up()
+	if err != nil {
+		t.Fatalf("Up should not error for missing layers (just skip): %v", err)
+	}
+}
+
+func TestStackStore_Down_UnknownRecipe(t *testing.T) {
+	tmpDir := t.TempDir()
+	stacksDir := filepath.Join(tmpDir, "stacks")
+	os.MkdirAll(stacksDir, 0755)
+
+	planDir := filepath.Join(tmpDir, "layers", "1.svc", "app")
+	os.MkdirAll(planDir, 0755)
+	// No verbs = unknown
+
+	os.WriteFile(filepath.Join(stacksDir, "test.yaml"), []byte(`version: v0
+stack:
+  layers:
+    - layer: layers/1.svc
+      plan: app
+`), 0644)
+
+	store, _ := NewStackStore(tmpDir, "test", false)
+	err := store.Down()
+	if err != nil {
+		t.Fatalf("Down should not error for unknown recipe (just skip): %v", err)
+	}
+}
+
+// --- logDebug ---
+
+func TestStackStore_LogDebug(t *testing.T) {
+	tmpDir := t.TempDir()
+	stacksDir := filepath.Join(tmpDir, "stacks")
+	os.MkdirAll(stacksDir, 0755)
+	os.WriteFile(filepath.Join(stacksDir, "test.yaml"), []byte(`version: v0
+stack:
+  layers: []
+`), 0644)
+
+	store, _ := NewStackStore(tmpDir, "test", true)
+	// Should not panic
+	store.logDebug("test %s", "message")
+
+	store2, _ := NewStackStore(tmpDir, "test", false)
+	// Should not panic (noop)
+	store2.logDebug("test %s", "message")
+}
+
+// --- logShellCmd ---
+
+func TestLogShellCmd(t *testing.T) {
+	tmpDir := t.TempDir()
+	cmd := logShellCmd(tmpDir)
+	if cmd.Dir != tmpDir {
+		t.Fatalf("expected Dir=%s, got %s", tmpDir, cmd.Dir)
+	}
+	if cmd.Args[0] != "bash" || cmd.Args[1] != "verbs/logs.sh" {
+		t.Fatalf("unexpected args: %v", cmd.Args)
 	}
 }
