@@ -52,10 +52,10 @@ func (i *Inventory) Plan() (*ActionPlan, error) {
 	if err != nil {
 		return nil, libs.WriteErrorf("error scanning applies: %w\n", err)
 	}
-	libs.WriteOutputf("Found Apply: %d\n", len(appliesFounds))
+	libs.WriteDetail("found %d applies", len(appliesFounds))
 
 	if len(appliesFounds) == 0 {
-		libs.WriteErrorString("No applies found\n")
+		libs.WriteDetail("no applies found")
 		return result, nil
 	}
 

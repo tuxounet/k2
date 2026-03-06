@@ -5,13 +5,13 @@ import (
 
 	"github.com/tuxounet/k2/libs"
 	"github.com/tuxounet/k2/stores"
-
 	"github.com/urfave/cli/v3"
 )
 
-var PlanCmd = &cli.Command{
-	Name:  "plan",
-	Usage: "plan all elements in current inventory folder",
+var RenderCmd = &cli.Command{
+	Name:    "render",
+	Aliases: []string{"apply"},
+	Usage:   "render all elements in current inventory folder",
 	Flags: []cli.Flag{
 		&cli.StringFlag{
 			Name:        "inventory",
@@ -21,12 +21,12 @@ var PlanCmd = &cli.Command{
 		},
 	},
 	Action: func(context.Context, *cli.Command) error {
-		return doPlan()
+		return doRender()
 	},
 }
 
-func doPlan() error {
-	libs.WriteOutputf("Planning inventory %s\n", initialInventoryFile)
+func doRender() error {
+	libs.WriteTitle("Render %s", initialInventoryFile)
 
 	if initialInventoryFile == "" {
 		initialInventoryFile = "./k2.inventory.yaml"
@@ -36,13 +36,15 @@ func doPlan() error {
 	if err != nil {
 		return err
 	}
+
 	plan, err := inventory.Plan()
 	if err != nil {
 		return err
 	}
-	libs.WriteOutputf("PLAN RESULT: %d\n", len(plan.Tasks))
-	for _, r := range plan.Tasks {
-		libs.WriteOutputf("WILL DO ACTION: %v\n", r)
+
+	err = inventory.Apply(plan)
+	if err != nil {
+		return err
 	}
 
 	return nil

@@ -1,49 +1,103 @@
-# k2 (BETA)
+# k2
 
-K2 Build System CLI
+**A declarative, YAML-driven template engine written in Go.**
 
-## CLI
+k2 lets you define reusable templates, organize them in an inventory, and
+generate entire project trees with a single command.
+It follows a simple three-phase lifecycle: **Render-plan → Render → Unrender**.
 
-### from everywhere 
+> **Status:** Beta — actively developed, feedback welcome.
+
+---
+
+## Highlights
+
+- **Declarative** — describe *what* you want, not *how* to build it.
+- **YAML all the way** — inventory, templates, and applies are plain YAML files.
+- **Reusable templates** — define once, apply many times with different variables.
+- **Git sources** — pull templates straight from remote Git repositories.
+- **Nested templates** — templates can contain other templates.
+- **Lifecycle scripts** — hook into bootstrap, pre, post and nuke phases.
+- **Idempotent** — plan before you render, unrender when you're done.
+
+---
+
+## Quick Start
+
+### Install
 
 ```bash
-K2_VERSION=$(curl --silent "https://api.github.com/repos/tuxounet/k2/tags" | jq -r '.[0].name')
-go install github.com/tuxounet/k2@${K2_VERSION}
-$(go env GOPATH)/bin/k2 help
+go install github.com/tuxounet/k2@latest
 ```
 
-
-### install
+### Verify
 
 ```bash
-go install github.com/tuxounet/k2@v0.9.0
-$(go env GOPATH)/bin/k2 help
+k2 help
 ```
 
-### uninstall
+### Uninstall
 
 ```bash
-rm $(go env GOPATH)/bin/k2
+rm "$(go env GOPATH)/bin/k2"
 ```
+
+---
 
 ## Usage
 
-Allowed actions:
+k2 exposes three commands. Each accepts an optional `--inventory` flag
+(defaults to `./k2.inventory.yaml`).
 
-- plan (compute what action well be donc)
-
-```bash
-$(go env GOPATH)/bin/k2 plan
-```
-
-- apply (apply template directives)
-
-```bash
-$(go env GOPATH)/bin/k2 apply
-```
-
-- destroy (cleanup template files)
+| Command          | Description                                          |
+|------------------|------------------------------------------------------|
+| **render-plan**  | Preview the execution plan without changing anything |
+| **render**       | Generate files from templates                        |
+| **unrender**     | Remove all generated files                           |
 
 ```bash
-$(go env GOPATH)/bin/k2 destroy
+# Preview what will happen
+k2 render-plan --inventory ./k2.inventory.yaml
+
+# Render templates
+k2 render --inventory ./k2.inventory.yaml
+
+# Clean up generated files
+k2 unrender --inventory ./k2.inventory.yaml
 ```
+
+---
+
+## Development
+
+```bash
+# Clone & enter the repo
+git clone https://github.com/tuxounet/k2.git && cd k2
+
+# See all available Make targets
+make help
+
+# Run tests
+make test
+
+# Build the binary
+make build
+```
+
+---
+
+## Documentation
+
+Full technical specifications live in the [specs/](specs/) folder — covering
+architecture, inventory format, template definitions, variables & rendering,
+lifecycle scripts, and more.
+
+---
+
+## License
+
+See [LICENSE](LICENSE) for details.
+
+## Author
+
+**Krux** — [github.com/tuxounet](https://github.com/tuxounet)
