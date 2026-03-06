@@ -9,3 +9,11 @@ render:
 
 unrender:
 	go run ../main.go unrender --inventory ./k2.inventory.yaml
+
+
+stack-up: 
+	go run ../main.go stack up stack-one 
+
+
+stack-down:
+	go run ../main.go stack down stack-one 
