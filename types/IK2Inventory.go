@@ -14,6 +14,7 @@ type IK2InventoryBody struct {
 		Ignore    []string `yaml:"ignore"`
 		Applies   []string `yaml:"applies"`
 		Templates []string `yaml:"templates"`
+		Stacks    string   `yaml:"stacks"`
 	} `yaml:"folders"`
 	Vars map[string]string `yaml:"vars"`
 }

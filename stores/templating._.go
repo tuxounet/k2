@@ -21,7 +21,7 @@ func NewTemplatingStore(plan *ActionPlan) *TemplatingStore {
 }
 
 func (t *TemplatingStore) ApplyTemplate(templateApplyId string, templateHash string, produceGitIgnore bool) (bool, error) {
-	libs.WriteOutputf("apply template %s\n", templateApplyId)
+	libs.WriteStep(libs.IconApply, "%s", templateApplyId)
 	template, ok := t.plan.Templates[templateHash]
 	if !ok {
 		return false, libs.WriteErrorf("template not found: %s", templateHash)
@@ -85,8 +85,6 @@ func (t *TemplatingStore) ApplyTemplate(templateApplyId string, templateHash str
 	}
 
 	for source, destination := range copyMap {
-		libs.WriteOutputf("copy %s=>%s\n", source, destination)
-
 		err = copyFile(source, destination, libs.MergeMaps(template.K2.Body.Parameters, apply.K2.Body.Vars))
 		if err != nil {
 			return false, err
@@ -110,7 +108,7 @@ func (t *TemplatingStore) ApplyTemplate(templateApplyId string, templateHash str
 }
 
 func (t *TemplatingStore) DestroyTemplate(templateApplyId string) error {
-	libs.WriteOutputf("destroy template %s\n", templateApplyId)
+	libs.WriteStep(libs.IconDestroy, "%s", templateApplyId)
 
 	apply, err := t.plan.GetEntityAsTemplateApply(templateApplyId)
 	if err != nil {

@@ -51,7 +51,7 @@ func (t *IK2Template) executeScript(target *IK2TemplateApply, script []string) e
 		return nil
 	}
 
-	libs.WriteOutputf("template execute script: %v\n", script)
+	libs.WriteSubStep("exec: %v", script)
 
 	for _, line := range script {
 		line := strings.TrimSpace(line)

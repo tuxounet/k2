@@ -48,7 +48,7 @@ func (t *IK2TemplateApply) executeScript(script []string) error {
 	if len(script) == 0 {
 		return nil
 	}
-	libs.WriteOutputf("template-apply execute script: %s %v\n", t.K2.Metadata.ID, script)
+	libs.WriteSubStep("exec: %v", script)
 
 	for _, line := range script {
 		err := libs.ExecCommand(line, t.K2.Metadata.Folder, t.K2.Body.Vars)
