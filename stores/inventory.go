@@ -2,10 +2,13 @@ package stores
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/tuxounet/k2/libs"
 	"github.com/tuxounet/k2/types"
+	"gopkg.in/yaml.v3"
 )
 
 type Inventory struct {
@@ -163,4 +166,57 @@ func (i *Inventory) Destroy(plan *ActionPlan) error {
 	}
 	return nil
 
+}
+
+func (i *Inventory) ListStacks() ([]StackInfo, error) {
+	stacksFolder := i.inventoryDefinition.K2.Body.Folders.Stacks
+	if stacksFolder == "" {
+		return nil, fmt.Errorf("no stacks folder defined in inventory")
+	}
+
+	stacksDir := filepath.Join(i.InventoryDir, stacksFolder)
+	entries, err := os.ReadDir(stacksDir)
+	if err != nil {
+		return nil, fmt.Errorf("cannot read stacks directory '%s': %w", stacksDir, err)
+	}
+
+	var stacks []StackInfo
+	for _, e := range entries {
+		if e.IsDir() || (!strings.HasSuffix(e.Name(), ".yaml") && !strings.HasSuffix(e.Name(), ".yml")) {
+			continue
+		}
+		stackName := strings.TrimSuffix(strings.TrimSuffix(e.Name(), ".yaml"), ".yml")
+		stackFile := filepath.Join(stacksDir, e.Name())
+
+		description := ""
+		data, err := os.ReadFile(stackFile)
+		if err == nil {
+			var def types.IK2Stack
+			if yaml.Unmarshal(data, &def) == nil && def.Stack.Description != "" {
+				description = strings.TrimSpace(def.Stack.Description)
+			}
+		}
+
+		layerCount := 0
+		if err == nil {
+			var def types.IK2Stack
+			if yaml.Unmarshal(data, &def) == nil {
+				layerCount = len(def.Stack.Layers)
+			}
+		}
+
+		stacks = append(stacks, StackInfo{
+			Name:        stackName,
+			Description: description,
+			LayerCount:  layerCount,
+		})
+	}
+
+	return stacks, nil
+}
+
+type StackInfo struct {
+	Name        string
+	Description string
+	LayerCount  int
 }

@@ -18,3 +18,5 @@ This folder contains the comprehensive technical documentation for all features 
 | [10-deduplication.md](10-deduplication.md) | Task deduplication and hashing |
 | [11-nested-templates.md](11-nested-templates.md) | Nested templates (template within a template) |
 | [12-custom-files.md](12-custom-files.md) | Custom files co-located with applies |
+| [13-stacks.md](13-stacks.md) | Stack orchestration and layer management |
+| [14-stacks-listing.md](14-stacks-listing.md) | `k2 stacks` command: listing stacks from inventory |

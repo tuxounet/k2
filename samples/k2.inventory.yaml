@@ -11,5 +11,6 @@ k2:
       applies:
         - services/**/k2.apply.yaml
         - services/**/k2.apply.yml
+      stacks: stacks
     vars:
       title: k2 cli samples and tests

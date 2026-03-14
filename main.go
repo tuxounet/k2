@@ -32,6 +32,7 @@ func main() {
 			cmds.RenderCmd,
 			cmds.UnrenderCmd,
 			cmds.StackCmd,
+			cmds.StacksCmd,
 		},
 	}
 

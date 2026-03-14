@@ -967,3 +967,232 @@ func TestInventory_Apply_IdempotentReapply(t *testing.T) {
 		t.Fatalf("content should still be correct after re-apply, got: %s", string(content))
 	}
 }
+
+func TestInventory_ListStacks_FromSamples(t *testing.T) {
+	samplesDir := copySamplesDir(t)
+	inventoryPath := filepath.Join(samplesDir, "k2.inventory.yaml")
+
+	inv, err := NewInventory(inventoryPath)
+	if err != nil {
+		t.Fatalf("failed to create inventory: %v", err)
+	}
+
+	stacks, err := inv.ListStacks()
+	if err != nil {
+		t.Fatalf("failed to list stacks: %v", err)
+	}
+
+	if len(stacks) == 0 {
+		t.Fatal("expected at least one stack from samples")
+	}
+
+	found := false
+	for _, s := range stacks {
+		if s.Name == "stack-one" {
+			found = true
+			if s.Description == "" {
+				t.Fatal("expected description for stack-one")
+			}
+			if s.LayerCount == 0 {
+				t.Fatal("expected at least one layer in stack-one")
+			}
+		}
+	}
+	if !found {
+		t.Fatal("expected stack 'stack-one' in results")
+	}
+}
+
+func TestInventory_ListStacks_Empty(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	invContent := `k2:
+  metadata:
+    id: test-stacks
+    kind: inventory
+  body:
+    folders:
+      ignore: []
+      templates: []
+      applies: []
+      stacks: stacks
+    vars: {}
+`
+	os.WriteFile(filepath.Join(tmpDir, "k2.inventory.yaml"), []byte(invContent), 0644)
+	os.MkdirAll(filepath.Join(tmpDir, "stacks"), 0755)
+
+	inv, err := NewInventory(filepath.Join(tmpDir, "k2.inventory.yaml"))
+	if err != nil {
+		t.Fatalf("failed to create inventory: %v", err)
+	}
+
+	stacks, err := inv.ListStacks()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(stacks) != 0 {
+		t.Fatalf("expected 0 stacks, got %d", len(stacks))
+	}
+}
+
+func TestInventory_ListStacks_NoStacksFolder(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	invContent := `k2:
+  metadata:
+    id: test-no-stacks
+    kind: inventory
+  body:
+    folders:
+      ignore: []
+      templates: []
+      applies: []
+    vars: {}
+`
+	os.WriteFile(filepath.Join(tmpDir, "k2.inventory.yaml"), []byte(invContent), 0644)
+
+	inv, err := NewInventory(filepath.Join(tmpDir, "k2.inventory.yaml"))
+	if err != nil {
+		t.Fatalf("failed to create inventory: %v", err)
+	}
+
+	_, err = inv.ListStacks()
+	if err == nil {
+		t.Fatal("expected error when no stacks folder defined")
+	}
+}
+
+func TestInventory_ListStacks_MultipleStacks(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	invContent := `k2:
+  metadata:
+    id: test-multi-stacks
+    kind: inventory
+  body:
+    folders:
+      ignore: []
+      templates: []
+      applies: []
+      stacks: stacks
+    vars: {}
+`
+	os.WriteFile(filepath.Join(tmpDir, "k2.inventory.yaml"), []byte(invContent), 0644)
+
+	stacksDir := filepath.Join(tmpDir, "stacks")
+	os.MkdirAll(stacksDir, 0755)
+
+	os.WriteFile(filepath.Join(stacksDir, "dev.yaml"), []byte(`version: v0
+stack:
+  description: "Development stack"
+  layers:
+    - layer: layers/1.services
+      plan: web
+    - layer: layers/2.tools
+      plan: db
+`), 0644)
+
+	os.WriteFile(filepath.Join(stacksDir, "prod.yaml"), []byte(`version: v0
+stack:
+  description: "Production stack"
+  layers:
+    - layer: layers/1.services
+      plan: web
+`), 0644)
+
+	os.WriteFile(filepath.Join(stacksDir, "minimal.yml"), []byte(`version: v0
+stack:
+  layers: []
+`), 0644)
+
+	// A non-yaml file should be ignored
+	os.WriteFile(filepath.Join(stacksDir, "README.md"), []byte("# Stacks"), 0644)
+
+	// A directory should be ignored
+	os.MkdirAll(filepath.Join(stacksDir, "subdir"), 0755)
+
+	inv, err := NewInventory(filepath.Join(tmpDir, "k2.inventory.yaml"))
+	if err != nil {
+		t.Fatalf("failed to create inventory: %v", err)
+	}
+
+	stacks, err := inv.ListStacks()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if len(stacks) != 3 {
+		t.Fatalf("expected 3 stacks, got %d", len(stacks))
+	}
+
+	// Check dev stack
+	devFound := false
+	prodFound := false
+	minimalFound := false
+	for _, s := range stacks {
+		switch s.Name {
+		case "dev":
+			devFound = true
+			if s.Description != "Development stack" {
+				t.Fatalf("expected description 'Development stack', got '%s'", s.Description)
+			}
+			if s.LayerCount != 2 {
+				t.Fatalf("expected 2 layers for dev, got %d", s.LayerCount)
+			}
+		case "prod":
+			prodFound = true
+			if s.Description != "Production stack" {
+				t.Fatalf("expected description 'Production stack', got '%s'", s.Description)
+			}
+			if s.LayerCount != 1 {
+				t.Fatalf("expected 1 layer for prod, got %d", s.LayerCount)
+			}
+		case "minimal":
+			minimalFound = true
+			if s.Description != "" {
+				t.Fatalf("expected empty description for minimal, got '%s'", s.Description)
+			}
+			if s.LayerCount != 0 {
+				t.Fatalf("expected 0 layers for minimal, got %d", s.LayerCount)
+			}
+		}
+	}
+
+	if !devFound {
+		t.Fatal("expected 'dev' stack in results")
+	}
+	if !prodFound {
+		t.Fatal("expected 'prod' stack in results")
+	}
+	if !minimalFound {
+		t.Fatal("expected 'minimal' stack in results")
+	}
+}
+
+func TestInventory_ListStacks_InvalidStacksDir(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	invContent := `k2:
+  metadata:
+    id: test-invalid-dir
+    kind: inventory
+  body:
+    folders:
+      ignore: []
+      templates: []
+      applies: []
+      stacks: nonexistent
+    vars: {}
+`
+	os.WriteFile(filepath.Join(tmpDir, "k2.inventory.yaml"), []byte(invContent), 0644)
+
+	inv, err := NewInventory(filepath.Join(tmpDir, "k2.inventory.yaml"))
+	if err != nil {
+		t.Fatalf("failed to create inventory: %v", err)
+	}
+
+	_, err = inv.ListStacks()
+	if err == nil {
+		t.Fatal("expected error when stacks directory does not exist")
+	}
+}

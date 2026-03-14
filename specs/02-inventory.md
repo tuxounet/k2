@@ -23,6 +23,7 @@ k2:
       applies:              # Glob patterns to find applies
         - services/**/k2.apply.yaml
         - services/**/k2.apply.yml
+      stacks: stacks        # Directory containing stack YAML files
     vars:                   # Global variables (string key/value)
       title: my project
 ```
@@ -43,6 +44,7 @@ k2:
 | `ignore` | string[] | no | Glob patterns of files to ignore during scanning |
 | `templates` | string[] | yes | Glob patterns to locate `k2.template.yaml` files |
 | `applies` | string[] | yes | Glob patterns to locate `k2.apply.yaml` files |
+| `stacks` | string | no | Relative path to the directory containing stack YAML files |
 
 Glob patterns use the `gobwas/glob` library and support:
 - `*`: any character except `/`
@@ -69,6 +71,7 @@ k2:
       applies:
         - services/**/k2.apply.yaml
         - services/**/k2.apply.yml
+      stacks: stacks
     vars:
       title: k2 cli samples and tests
 ```
