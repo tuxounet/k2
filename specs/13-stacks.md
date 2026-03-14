@@ -49,6 +49,7 @@ layers/<N.category>/<plan>/
 ├── verbs/               # Shell script verbs
 │   ├── up.sh            # Start the service (required)
 │   ├── down.sh          # Stop the service
+│   ├── build.sh         # Build the service (optional)
 │   ├── status.sh        # Output status (UP, DOWN, DEGRADED...)
 │   ├── logs.sh          # Stream logs
 │   ├── shell.sh         # Open interactive shell
@@ -81,6 +82,8 @@ k2:
       post_start: "echo started!"
       pre_stop: "echo stopping..."
       post_stop: "echo stopped!"
+      pre_build: "echo building..."
+      post_build: "echo built!"
       healthcheck: "curl -f http://localhost:8080/health"
 ```
 
@@ -101,6 +104,19 @@ k2 stack --inventory ./k2.inventory.yaml up my-stack
 ### `k2 stack down <name>`
 
 Stop all layers in reverse order.
+
+### `k2 stack build <name> [layer]`
+
+Render k2 templates, then run `verbs/build.sh` on each layer that has one. Layers without a `build.sh` are skipped.
+
+With an optional layer argument, only that layer is built.
+
+```bash
+k2 stack build my-stack
+k2 stack build my-stack my-layer
+```
+
+Hooks `pre_build` and `post_build` are called before and after `build.sh` if defined in `k2.apply.yaml`.
 
 ### `k2 stack restart <name>`
 

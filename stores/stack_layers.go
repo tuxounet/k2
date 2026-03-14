@@ -165,6 +165,18 @@ func layerLogs(planDir string) error {
 	return cmd.Run()
 }
 
+func layerBuild(planDir string) error {
+	buildScript := filepath.Join(planDir, "verbs", "build.sh")
+	if _, err := os.Stat(buildScript); os.IsNotExist(err) {
+		return nil
+	}
+	cmd := exec.Command("bash", "verbs/build.sh")
+	cmd.Dir = planDir
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	return cmd.Run()
+}
+
 func layerShell(planDir string) error {
 	shellScript := filepath.Join(planDir, "verbs", "shell.sh")
 	if _, err := os.Stat(shellScript); os.IsNotExist(err) {

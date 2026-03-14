@@ -200,6 +200,69 @@ func (s *StackStore) Down() error {
 	return nil
 }
 
+func (s *StackStore) Build(targetLayer string) error {
+	layers := s.Definition.Stack.Layers
+	layerCount := len(layers)
+
+	s.loadEnv()
+	libs.WriteStackBanner("build", s.Name, layerCount)
+	s.doRender()
+
+	successCount := 0
+	skipCount := 0
+	var failures []string
+
+	for i, layer := range layers {
+		ref := layerRef(layer.Layer, layer.Plan)
+		planDir := layerResolvePath(s.RootDir, layer.Layer, layer.Plan)
+
+		if targetLayer != "" {
+			if !strings.Contains(ref, targetLayer) && layer.Plan != targetLayer &&
+				!strings.Contains(layer.Layer+"/"+layer.Plan, targetLayer) {
+				continue
+			}
+		}
+
+		libs.WriteStackStepStart(i+1, layerCount, "⚙ Build", ref)
+		s.logDebug("path=%s", planDir)
+
+		if _, err := os.Stat(planDir); os.IsNotExist(err) {
+			libs.WriteStackStepSkip(layer.Plan, "dossier introuvable")
+			continue
+		}
+
+		buildScript := filepath.Join(planDir, "verbs", "build.sh")
+		if _, err := os.Stat(buildScript); os.IsNotExist(err) {
+			libs.WriteStackStepSkip(layer.Plan, "pas de verbs/build.sh")
+			skipCount++
+			continue
+		}
+
+		s.exportLayerEnv(i)
+
+		libs.WriteSubStep("verbs/build.sh")
+
+		layerRunHook(planDir, "pre_build")
+
+		if err := layerBuild(planDir); err != nil {
+			libs.WriteStackStepFail(layer.Plan, "échec (voir logs)")
+			failures = append(failures, ref+" — échec")
+			continue
+		}
+
+		layerRunHook(planDir, "post_build")
+		libs.WriteStackStepOk(layer.Plan, "build terminé")
+		successCount++
+	}
+
+	if targetLayer != "" && successCount == 0 && len(failures) == 0 && skipCount == 0 {
+		return fmt.Errorf("layer '%s' not found in stack '%s'", targetLayer, s.Name)
+	}
+
+	libs.WriteStackSummary("build terminé", s.Name, successCount, layerCount-skipCount, failures)
+	return nil
+}
+
 func (s *StackStore) Restart() error {
 	if err := s.Down(); err != nil {
 		return err

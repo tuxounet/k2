@@ -53,6 +53,7 @@ var StackCmd = &cli.Command{
 	Commands: []*cli.Command{
 		stackUpCmd,
 		stackDownCmd,
+		stackBuildCmd,
 		stackRestartCmd,
 		stackStatusCmd,
 		stackLogsCmd,
@@ -88,6 +89,24 @@ var stackDownCmd = &cli.Command{
 			return err
 		}
 		return s.Down()
+	},
+}
+
+var stackBuildCmd = &cli.Command{
+	Name:  "build",
+	Usage: "run build.sh on all (or a specific) layer in a stack",
+	Flags: stackFlags,
+	Action: func(_ context.Context, cmd *cli.Command) error {
+		stackName := cmd.Args().First()
+		if stackName == "" {
+			return fmt.Errorf("stack name required")
+		}
+		s, err := stores.NewStackStore(getStackRootDir(), stackName, stackDebug)
+		if err != nil {
+			return err
+		}
+		targetLayer := cmd.Args().Get(1)
+		return s.Build(targetLayer)
 	},
 }
 

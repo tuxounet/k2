@@ -988,6 +988,120 @@ stack:
 	store2.logDebug("test %s", "message")
 }
 
+// --- layerBuild ---
+
+func TestLayerBuild(t *testing.T) {
+	tmpDir := t.TempDir()
+	verbsDir := filepath.Join(tmpDir, "verbs")
+	os.MkdirAll(verbsDir, 0755)
+	marker := filepath.Join(tmpDir, "built")
+	os.WriteFile(filepath.Join(verbsDir, "build.sh"), []byte("#!/bin/bash\ntouch "+marker), 0755)
+
+	err := layerBuild(tmpDir)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if _, err := os.Stat(marker); os.IsNotExist(err) {
+		t.Fatal("build.sh did not run")
+	}
+}
+
+func TestLayerBuild_NoBuildScript(t *testing.T) {
+	tmpDir := t.TempDir()
+	err := layerBuild(tmpDir)
+	if err != nil {
+		t.Fatalf("expected nil when no build.sh, got: %v", err)
+	}
+}
+
+func TestLayerBuild_Failure(t *testing.T) {
+	tmpDir := t.TempDir()
+	verbsDir := filepath.Join(tmpDir, "verbs")
+	os.MkdirAll(verbsDir, 0755)
+	os.WriteFile(filepath.Join(verbsDir, "build.sh"), []byte("#!/bin/bash\nexit 1"), 0755)
+
+	err := layerBuild(tmpDir)
+	if err == nil {
+		t.Fatal("expected error from failing build.sh")
+	}
+}
+
+// --- StackStore.Build ---
+
+func TestStackStore_Build_AllLayers(t *testing.T) {
+	tmpDir, store := createTestStack(t)
+
+	// Add build.sh to the layer
+	verbsDir := filepath.Join(tmpDir, "layers", "1.svc", "app", "verbs")
+	marker := filepath.Join(tmpDir, "layers", "1.svc", "app", "build_marker")
+	os.WriteFile(filepath.Join(verbsDir, "build.sh"), []byte("#!/bin/bash\ntouch "+marker), 0755)
+
+	err := store.Build("")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if _, err := os.Stat(marker); os.IsNotExist(err) {
+		t.Fatal("build.sh did not run during Build()")
+	}
+}
+
+func TestStackStore_Build_TargetLayer(t *testing.T) {
+	tmpDir, store := createTestStack(t)
+
+	verbsDir := filepath.Join(tmpDir, "layers", "1.svc", "app", "verbs")
+	marker := filepath.Join(tmpDir, "layers", "1.svc", "app", "build_marker")
+	os.WriteFile(filepath.Join(verbsDir, "build.sh"), []byte("#!/bin/bash\ntouch "+marker), 0755)
+
+	err := store.Build("app")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if _, err := os.Stat(marker); os.IsNotExist(err) {
+		t.Fatal("build.sh did not run for target layer")
+	}
+}
+
+func TestStackStore_Build_TargetNotFound(t *testing.T) {
+	_, store := createTestStack(t)
+
+	err := store.Build("nonexistent")
+	if err == nil {
+		t.Fatal("expected error for nonexistent layer")
+	}
+	if !strings.Contains(err.Error(), "not found") {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestStackStore_Build_NoBuildScript(t *testing.T) {
+	_, store := createTestStack(t)
+
+	// No build.sh in the layer — should skip gracefully
+	err := store.Build("")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestStackStore_Build_MissingLayerDir(t *testing.T) {
+	tmpDir := t.TempDir()
+	stacksDir := filepath.Join(tmpDir, "stacks")
+	os.MkdirAll(stacksDir, 0755)
+
+	os.WriteFile(filepath.Join(stacksDir, "test.yaml"), []byte(`version: v0
+stack:
+  layers:
+    - layer: layers/missing
+      plan: app
+`), 0644)
+
+	store, _ := NewStackStore(tmpDir, "test", false)
+	err := store.Build("")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
 // --- logShellCmd ---
 
 func TestLogShellCmd(t *testing.T) {
