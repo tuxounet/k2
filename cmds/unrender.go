@@ -30,7 +30,7 @@ func doUnrender() error {
 	libs.WriteTitle("Unrender %s", initialInventoryFile)
 
 	if initialInventoryFile == "" {
-		initialInventoryFile = "./k2.inventory.yaml"
+		initialInventoryFile = libs.DefaultInventoryFile
 	}
 
 	inventory, err := stores.NewInventory(initialInventoryFile)

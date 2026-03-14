@@ -29,7 +29,7 @@ func doRenderPlan() error {
 	libs.WriteTitle("Plan %s", initialInventoryFile)
 
 	if initialInventoryFile == "" {
-		initialInventoryFile = "./k2.inventory.yaml"
+		initialInventoryFile = libs.DefaultInventoryFile
 	}
 
 	inventory, err := stores.NewInventory(initialInventoryFile)

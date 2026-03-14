@@ -14,7 +14,7 @@ go install github.com/tuxounet/k2@latest
 
 | Flag | Type | Default | Description |
 |------|------|---------|-------------|
-| `--inventory` | string | `./k2.inventory.yaml` | Path to the inventory file |
+| `--inventory` | string | `k2.inventory.yaml` | Path to the inventory file (defaults to `k2.inventory.yaml` in the current working directory) |
 
 ## `render-plan` Command
 

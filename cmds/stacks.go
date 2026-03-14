@@ -30,7 +30,7 @@ var StacksCmd = &cli.Command{
 
 func doListStacks() error {
 	if stacksInventoryFile == "" {
-		stacksInventoryFile = "./k2.inventory.yaml"
+		stacksInventoryFile = libs.DefaultInventoryFile
 	}
 
 	inventory, err := stores.NewInventory(stacksInventoryFile)

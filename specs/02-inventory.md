@@ -81,4 +81,5 @@ k2:
 1. Pattern paths are relative to the folder containing the inventory file
 2. The `FileStore` recursively traverses the folder and filters files according to the glob patterns
 3. Each file found is deserialized and its `path` and `folder` are automatically populated
-4. If no inventory file is specified via CLI, k2 looks for `./k2.inventory.yaml` by default
+4. If no inventory file is specified via CLI (`--inventory` flag), k2 uses `k2.inventory.yaml` in the current working directory by default (the launch directory)
+5. The default filename is defined by the `DefaultInventoryFile` constant (`k2.inventory.yaml`)
