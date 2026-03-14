@@ -53,7 +53,9 @@ var StackCmd = &cli.Command{
 	Commands: []*cli.Command{
 		stackUpCmd,
 		stackDownCmd,
+		stackRmCmd,
 		stackBuildCmd,
+		stackExecCmd,
 		stackRestartCmd,
 		stackStatusCmd,
 		stackLogsCmd,
@@ -92,6 +94,19 @@ var stackDownCmd = &cli.Command{
 	},
 }
 
+var stackRmCmd = &cli.Command{
+	Name:  "rm",
+	Usage: "run rm.sh on all layers in a stack (reverse order)",
+	Flags: stackFlags,
+	Action: func(_ context.Context, cmd *cli.Command) error {
+		s, err := newStack(cmd)
+		if err != nil {
+			return err
+		}
+		return s.Rm()
+	},
+}
+
 var stackBuildCmd = &cli.Command{
 	Name:  "build",
 	Usage: "run build.sh on all (or a specific) layer in a stack",
@@ -107,6 +122,31 @@ var stackBuildCmd = &cli.Command{
 		}
 		targetLayer := cmd.Args().Get(1)
 		return s.Build(targetLayer)
+	},
+}
+
+var stackExecCmd = &cli.Command{
+	Name:  "exec",
+	Usage: "run a verb on all layers of a stack: exec <stack> <verb> [args...]",
+	Flags: stackFlags,
+	Action: func(_ context.Context, cmd *cli.Command) error {
+		stackName := cmd.Args().First()
+		if stackName == "" {
+			return fmt.Errorf("usage: k2 stack exec <stack> <verb> [args...]")
+		}
+		verb := cmd.Args().Get(1)
+		if verb == "" {
+			return fmt.Errorf("usage: k2 stack exec <stack> <verb> [args...]")
+		}
+		s, err := stores.NewStackStore(getStackRootDir(), stackName, stackDebug)
+		if err != nil {
+			return err
+		}
+		var args []string
+		if cmd.Args().Len() > 2 {
+			args = cmd.Args().Slice()[2:]
+		}
+		return s.Exec(verb, args)
 	},
 }
 

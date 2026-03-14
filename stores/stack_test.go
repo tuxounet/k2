@@ -988,41 +988,64 @@ stack:
 	store2.logDebug("test %s", "message")
 }
 
-// --- layerBuild ---
+// --- layerHasVerb ---
 
-func TestLayerBuild(t *testing.T) {
+func TestLayerHasVerb_Present(t *testing.T) {
 	tmpDir := t.TempDir()
 	verbsDir := filepath.Join(tmpDir, "verbs")
 	os.MkdirAll(verbsDir, 0755)
-	marker := filepath.Join(tmpDir, "built")
-	os.WriteFile(filepath.Join(verbsDir, "build.sh"), []byte("#!/bin/bash\ntouch "+marker), 0755)
+	os.WriteFile(filepath.Join(verbsDir, "build.sh"), []byte("echo build"), 0644)
 
-	err := layerBuild(tmpDir)
+	if !layerHasVerb(tmpDir, "build") {
+		t.Fatal("expected layerHasVerb to return true")
+	}
+}
+
+func TestLayerHasVerb_Missing(t *testing.T) {
+	tmpDir := t.TempDir()
+	if layerHasVerb(tmpDir, "build") {
+		t.Fatal("expected layerHasVerb to return false when no verb")
+	}
+}
+
+func TestLayerHasVerb_OtherVerbPresent(t *testing.T) {
+	tmpDir := t.TempDir()
+	verbsDir := filepath.Join(tmpDir, "verbs")
+	os.MkdirAll(verbsDir, 0755)
+	os.WriteFile(filepath.Join(verbsDir, "up.sh"), []byte("echo up"), 0644)
+
+	if layerHasVerb(tmpDir, "build") {
+		t.Fatal("expected layerHasVerb to return false for absent verb")
+	}
+	if !layerHasVerb(tmpDir, "up") {
+		t.Fatal("expected layerHasVerb to return true for present verb")
+	}
+}
+
+// --- StackStore.Rm ---
+
+func TestStackStore_Rm_RunsWhenVerbPresent(t *testing.T) {
+	tmpDir, store := createTestStack(t)
+
+	verbsDir := filepath.Join(tmpDir, "layers", "1.svc", "app", "verbs")
+	marker := filepath.Join(tmpDir, "layers", "1.svc", "app", "rm_marker")
+	os.WriteFile(filepath.Join(verbsDir, "rm.sh"), []byte("#!/bin/bash\ntouch "+marker), 0755)
+
+	err := store.Rm()
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 	if _, err := os.Stat(marker); os.IsNotExist(err) {
-		t.Fatal("build.sh did not run")
+		t.Fatal("rm.sh did not run during Rm()")
 	}
 }
 
-func TestLayerBuild_NoBuildScript(t *testing.T) {
-	tmpDir := t.TempDir()
-	err := layerBuild(tmpDir)
+func TestStackStore_Rm_SkipsWhenNoVerb(t *testing.T) {
+	_, store := createTestStack(t)
+	// createTestStack has no rm.sh — should succeed silently
+	err := store.Rm()
 	if err != nil {
-		t.Fatalf("expected nil when no build.sh, got: %v", err)
-	}
-}
-
-func TestLayerBuild_Failure(t *testing.T) {
-	tmpDir := t.TempDir()
-	verbsDir := filepath.Join(tmpDir, "verbs")
-	os.MkdirAll(verbsDir, 0755)
-	os.WriteFile(filepath.Join(verbsDir, "build.sh"), []byte("#!/bin/bash\nexit 1"), 0755)
-
-	err := layerBuild(tmpDir)
-	if err == nil {
-		t.Fatal("expected error from failing build.sh")
+		t.Fatalf("unexpected error: %v", err)
 	}
 }
 
@@ -1113,4 +1136,99 @@ func TestLogShellCmd(t *testing.T) {
 	if cmd.Args[0] != "bash" || cmd.Args[1] != "verbs/logs.sh" {
 		t.Fatalf("unexpected args: %v", cmd.Args)
 	}
+}
+
+// --- StackStore.Exec ---
+
+func TestStackStore_Exec_RunsOnAllLayers(t *testing.T) {
+	tmpDir, store := createTestStack(t)
+
+	verbsDir := filepath.Join(tmpDir, "layers", "1.svc", "app", "verbs")
+	marker := filepath.Join(tmpDir, "layers", "1.svc", "app", "deploy_marker")
+	os.WriteFile(filepath.Join(verbsDir, "deploy.sh"), []byte("#!/bin/bash\ntouch "+marker), 0755)
+
+	err := store.Exec("deploy", nil)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if _, err := os.Stat(marker); os.IsNotExist(err) {
+		t.Fatal("deploy.sh did not run during Exec()")
+	}
+}
+
+func TestStackStore_Exec_WithArgs(t *testing.T) {
+	tmpDir, store := createTestStack(t)
+
+	verbsDir := filepath.Join(tmpDir, "layers", "1.svc", "app", "verbs")
+	outFile := filepath.Join(tmpDir, "layers", "1.svc", "app", "args_out")
+	os.WriteFile(filepath.Join(verbsDir, "greet.sh"), []byte("#!/bin/bash\necho \"$@\" > "+outFile), 0755)
+
+	err := store.Exec("greet", []string{"hello", "world"})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	data, _ := os.ReadFile(outFile)
+	if strings.TrimSpace(string(data)) != "hello world" {
+		t.Fatalf("expected 'hello world', got '%s'", strings.TrimSpace(string(data)))
+	}
+}
+
+func TestStackStore_Exec_SkipsLayersWithoutVerb(t *testing.T) {
+	_, store := createTestStack(t)
+
+	// No "deploy.sh" in any layer — should succeed with 0 executed
+	err := store.Exec("deploy", nil)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestStackStore_Exec_VerbFails(t *testing.T) {
+	tmpDir, store := createTestStack(t)
+
+	verbsDir := filepath.Join(tmpDir, "layers", "1.svc", "app", "verbs")
+	os.WriteFile(filepath.Join(verbsDir, "fail.sh"), []byte("#!/bin/bash\nexit 1"), 0755)
+
+	err := store.Exec("fail", nil)
+	if err != nil {
+		t.Fatalf("unexpected error from Exec (failures are reported, not returned): %v", err)
+	}
+}
+
+func TestStackStore_Exec_MultipleLayersSelective(t *testing.T) {
+	tmpDir := t.TempDir()
+	stacksDir := filepath.Join(tmpDir, "stacks")
+	os.MkdirAll(stacksDir, 0755)
+
+	// Layer A has migrate.sh, Layer B does not
+	layerA := filepath.Join(tmpDir, "layers", "1.svc", "app-a")
+	layerB := filepath.Join(tmpDir, "layers", "1.svc", "app-b")
+	os.MkdirAll(filepath.Join(layerA, "verbs"), 0755)
+	os.MkdirAll(filepath.Join(layerB, "verbs"), 0755)
+
+	markerA := filepath.Join(layerA, "migrated")
+	os.WriteFile(filepath.Join(layerA, "verbs", "up.sh"), []byte("echo up"), 0644)
+	os.WriteFile(filepath.Join(layerA, "verbs", "migrate.sh"), []byte("#!/bin/bash\ntouch "+markerA), 0755)
+	os.WriteFile(filepath.Join(layerB, "verbs", "up.sh"), []byte("echo up"), 0644)
+	// app-b intentionally has no migrate.sh
+
+	os.WriteFile(filepath.Join(stacksDir, "test.yaml"), []byte(`version: v0
+stack:
+  layers:
+    - layer: layers/1.svc
+      plan: app-a
+    - layer: layers/1.svc
+      plan: app-b
+`), 0644)
+
+	store, _ := NewStackStore(tmpDir, "test", false)
+	err := store.Exec("migrate", nil)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if _, err := os.Stat(markerA); os.IsNotExist(err) {
+		t.Fatal("migrate.sh did not run on app-a")
+	}
+	// app-b had no migrate.sh — no marker expected, no error expected
 }

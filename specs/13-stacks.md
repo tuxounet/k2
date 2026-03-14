@@ -151,6 +151,17 @@ k2 stack run my-stack my-layer              # list verbs
 k2 stack run my-stack my-layer custom-verb   # execute verb
 ```
 
+### `k2 stack exec <name> <verb> [args...]`
+
+Run a verb on **every layer** of a stack that has it. Layers without the verb script are silently skipped. This differs from `run`, which targets a specific layer.
+
+```bash
+k2 stack exec my-stack migrate          # run migrate.sh on all layers that have it
+k2 stack exec my-stack deploy -- --env prod  # pass extra args
+```
+
+Hooks `pre_<verb>` and `post_<verb>` are called when defined in `k2.apply.yaml`.
+
 ### `k2 stack list`
 
 List all available stacks with descriptions.

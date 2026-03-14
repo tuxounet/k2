@@ -165,16 +165,9 @@ func layerLogs(planDir string) error {
 	return cmd.Run()
 }
 
-func layerBuild(planDir string) error {
-	buildScript := filepath.Join(planDir, "verbs", "build.sh")
-	if _, err := os.Stat(buildScript); os.IsNotExist(err) {
-		return nil
-	}
-	cmd := exec.Command("bash", "verbs/build.sh")
-	cmd.Dir = planDir
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	return cmd.Run()
+func layerHasVerb(planDir, verb string) bool {
+	_, err := os.Stat(filepath.Join(planDir, "verbs", verb+".sh"))
+	return err == nil
 }
 
 func layerShell(planDir string) error {

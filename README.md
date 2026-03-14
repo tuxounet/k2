@@ -55,6 +55,26 @@ k2 exposes three commands. Each accepts an optional `--inventory` flag
 | **render**       | Generate files from templates                        |
 | **unrender**     | Remove all generated files                           |
 
+### Stack commands (`k2 stack <sub-command>`)
+
+Stack commands orchestrate multi-layer deployments. Each sub-command requires a stack name as first argument.
+
+| Sub-command    | Description                                                         |
+|----------------|---------------------------------------------------------------------|
+| **up**         | Render templates, then start all layers in order                    |
+| **down**       | Stop all layers in reverse order                                    |
+| **restart**    | `down` then `up`                                                    |
+| **build**      | Run `verbs/build.sh` on all (or a specific) layer                   |
+| **exec**       | Run any named verb on every layer that has it                       |
+| **status**     | Show status table for each layer                                    |
+| **logs**       | Stream logs (all layers or a specific one)                          |
+| **healthcheck**| Check health via optional hooks                                     |
+| **shell**      | Open an interactive shell in a layer                                |
+| **urls**       | Display access URLs from `links.env` files                          |
+| **run**        | Execute a verb on a specific layer                                  |
+| **list**       | List available stacks with descriptions                             |
+| **layers**     | List available layers with verb indicators                          |
+
 ```bash
 # Preview what will happen
 k2 render-plan --inventory ./k2.inventory.yaml

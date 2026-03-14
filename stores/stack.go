@@ -200,12 +200,20 @@ func (s *StackStore) Down() error {
 	return nil
 }
 
-func (s *StackStore) Build(targetLayer string) error {
+func (s *StackStore) Rm() error {
+	return s.execVerbOnLayers("rm", "", nil)
+}
+
+// execVerbOnLayers runs a named verb on every layer of the stack (optionally
+// filtered to a single layer). Layers that do not have the verb script are
+// silently skipped. Hooks named pre_<verb> and post_<verb> are called when
+// defined in k2.apply.yaml.
+func (s *StackStore) execVerbOnLayers(verb, targetLayer string, args []string) error {
 	layers := s.Definition.Stack.Layers
 	layerCount := len(layers)
 
 	s.loadEnv()
-	libs.WriteStackBanner("build", s.Name, layerCount)
+	libs.WriteStackBanner(verb, s.Name, layerCount)
 	s.doRender()
 
 	successCount := 0
@@ -223,7 +231,7 @@ func (s *StackStore) Build(targetLayer string) error {
 			}
 		}
 
-		libs.WriteStackStepStart(i+1, layerCount, "⚙ Build", ref)
+		libs.WriteStackStepStart(i+1, layerCount, "▶ "+verb, ref)
 		s.logDebug("path=%s", planDir)
 
 		if _, err := os.Stat(planDir); os.IsNotExist(err) {
@@ -231,27 +239,26 @@ func (s *StackStore) Build(targetLayer string) error {
 			continue
 		}
 
-		buildScript := filepath.Join(planDir, "verbs", "build.sh")
-		if _, err := os.Stat(buildScript); os.IsNotExist(err) {
-			libs.WriteStackStepSkip(layer.Plan, "pas de verbs/build.sh")
+		if !layerHasVerb(planDir, verb) {
+			libs.WriteStackStepSkip(layer.Plan, "pas de verbs/"+verb+".sh")
 			skipCount++
 			continue
 		}
 
 		s.exportLayerEnv(i)
 
-		libs.WriteSubStep("verbs/build.sh")
+		libs.WriteSubStep("verbs/%s.sh", verb)
 
-		layerRunHook(planDir, "pre_build")
+		layerRunHook(planDir, "pre_"+verb)
 
-		if err := layerBuild(planDir); err != nil {
+		if err := layerRunVerb(planDir, verb, args); err != nil {
 			libs.WriteStackStepFail(layer.Plan, "échec (voir logs)")
 			failures = append(failures, ref+" — échec")
 			continue
 		}
 
-		layerRunHook(planDir, "post_build")
-		libs.WriteStackStepOk(layer.Plan, "build terminé")
+		layerRunHook(planDir, "post_"+verb)
+		libs.WriteStackStepOk(layer.Plan, verb+" terminé")
 		successCount++
 	}
 
@@ -259,8 +266,16 @@ func (s *StackStore) Build(targetLayer string) error {
 		return fmt.Errorf("layer '%s' not found in stack '%s'", targetLayer, s.Name)
 	}
 
-	libs.WriteStackSummary("build terminé", s.Name, successCount, layerCount-skipCount, failures)
+	libs.WriteStackSummary(verb+" terminé", s.Name, successCount, layerCount-skipCount, failures)
 	return nil
+}
+
+func (s *StackStore) Build(targetLayer string) error {
+	return s.execVerbOnLayers("build", targetLayer, nil)
+}
+
+func (s *StackStore) Exec(verb string, args []string) error {
+	return s.execVerbOnLayers(verb, "", args)
 }
 
 func (s *StackStore) Restart() error {
