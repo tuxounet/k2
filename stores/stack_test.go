@@ -520,19 +520,6 @@ func TestLayerLogs_NoScript(t *testing.T) {
 	}
 }
 
-// --- layerShell ---
-
-func TestLayerShell_NoScript(t *testing.T) {
-	tmpDir := t.TempDir()
-	err := layerShell(tmpDir)
-	if err == nil {
-		t.Fatal("expected error when no shell.sh")
-	}
-	if !strings.Contains(err.Error(), "no shell verb") {
-		t.Fatalf("unexpected error: %v", err)
-	}
-}
-
 // --- layerRunVerb ---
 
 func TestLayerRunVerb(t *testing.T) {
@@ -880,46 +867,6 @@ func TestStackStore_Logs_TargetNotFound(t *testing.T) {
 		t.Fatal("expected error")
 	}
 	if !strings.Contains(err.Error(), "not found") {
-		t.Fatalf("unexpected error: %v", err)
-	}
-}
-
-// --- StackStore.Shell ---
-
-func TestStackStore_Shell_TargetNotFound(t *testing.T) {
-	_, store := createTestStack(t)
-
-	err := store.Shell("nonexistent")
-	if err == nil {
-		t.Fatal("expected error")
-	}
-	if !strings.Contains(err.Error(), "not found") {
-		t.Fatalf("unexpected error: %v", err)
-	}
-}
-
-func TestStackStore_Shell_NoRecipe(t *testing.T) {
-	tmpDir := t.TempDir()
-	stacksDir := filepath.Join(tmpDir, "stacks")
-	os.MkdirAll(stacksDir, 0755)
-
-	planDir := filepath.Join(tmpDir, "layers", "1.svc", "app")
-	os.MkdirAll(planDir, 0755)
-	// No verbs dir = unknown recipe
-
-	os.WriteFile(filepath.Join(stacksDir, "test.yaml"), []byte(`version: v0
-stack:
-  layers:
-    - layer: layers/1.svc
-      plan: app
-`), 0644)
-
-	store, _ := NewStackStore(tmpDir, "test", false)
-	err := store.Shell("")
-	if err == nil {
-		t.Fatal("expected error when no recipe found")
-	}
-	if !strings.Contains(err.Error(), "no layer with recipe") {
 		t.Fatalf("unexpected error: %v", err)
 	}
 }

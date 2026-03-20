@@ -60,7 +60,6 @@ var StackCmd = &cli.Command{
 		stackStatusCmd,
 		stackLogsCmd,
 		stackHealthcheckCmd,
-		stackShellCmd,
 		stackUrlsCmd,
 		stackRunCmd,
 		stackListCmd,
@@ -204,24 +203,6 @@ var stackHealthcheckCmd = &cli.Command{
 			return err
 		}
 		return s.Healthcheck()
-	},
-}
-
-var stackShellCmd = &cli.Command{
-	Name:  "shell",
-	Usage: "open a shell in a stack layer",
-	Flags: stackFlags,
-	Action: func(_ context.Context, cmd *cli.Command) error {
-		stackName := cmd.Args().First()
-		if stackName == "" {
-			return fmt.Errorf("stack name required")
-		}
-		s, err := stores.NewStackStore(getStackRootDir(), stackName, stackDebug)
-		if err != nil {
-			return err
-		}
-		targetLayer := cmd.Args().Get(1)
-		return s.Shell(targetLayer)
 	},
 }
 

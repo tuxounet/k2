@@ -69,7 +69,6 @@ Stack commands orchestrate multi-layer deployments. Each sub-command requires a 
 | **status**     | Show status table for each layer                                    |
 | **logs**       | Stream logs (all layers or a specific one)                          |
 | **healthcheck**| Check health via optional hooks                                     |
-| **shell**      | Open an interactive shell in a layer                                |
 | **urls**       | Display access URLs from `links.env` files                          |
 | **run**        | Execute a verb on a specific layer                                  |
 | **list**       | List available stacks with descriptions                             |

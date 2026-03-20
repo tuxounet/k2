@@ -170,19 +170,6 @@ func layerHasVerb(planDir, verb string) bool {
 	return err == nil
 }
 
-func layerShell(planDir string) error {
-	shellScript := filepath.Join(planDir, "verbs", "shell.sh")
-	if _, err := os.Stat(shellScript); os.IsNotExist(err) {
-		return fmt.Errorf("no shell verb available for '%s'", filepath.Base(planDir))
-	}
-	cmd := exec.Command("bash", "verbs/shell.sh")
-	cmd.Dir = planDir
-	cmd.Stdin = os.Stdin
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	return cmd.Run()
-}
-
 func layerListVerbs(planDir string) []string {
 	verbsDir := filepath.Join(planDir, "verbs")
 	entries, err := os.ReadDir(verbsDir)

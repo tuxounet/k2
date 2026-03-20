@@ -52,7 +52,6 @@ layers/<N.category>/<plan>/
 │   ├── build.sh         # Build the service (optional)
 │   ├── status.sh        # Output status (UP, DOWN, DEGRADED...)
 │   ├── logs.sh          # Stream logs
-│   ├── shell.sh         # Open interactive shell
 │   └── <custom>.sh      # Custom verbs
 ├── links.env            # Access URLs (label=url per line)
 ├── defaults.env         # Default environment variables
@@ -133,10 +132,6 @@ Show logs. Without a layer argument, shows all logs in parallel. With a layer na
 ### `k2 stack healthcheck <name>`
 
 Check health of each layer using optional healthcheck hooks defined in `k2.apply.yaml`.
-
-### `k2 stack shell <name> [layer]`
-
-Open an interactive shell via `verbs/shell.sh`. Without a layer argument, opens the first available layer.
 
 ### `k2 stack urls <name>`
 

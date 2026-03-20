@@ -403,39 +403,6 @@ func (s *StackStore) Healthcheck() error {
 	return nil
 }
 
-func (s *StackStore) Shell(targetLayer string) error {
-	layers := s.Definition.Stack.Layers
-
-	s.loadEnv()
-
-	if targetLayer != "" {
-		for i, layer := range layers {
-			ref := layerRef(layer.Layer, layer.Plan)
-			planDir := layerResolvePath(s.RootDir, layer.Layer, layer.Plan)
-			if strings.Contains(ref, targetLayer) || layer.Plan == targetLayer ||
-				strings.Contains(layer.Layer+"/"+layer.Plan, targetLayer) {
-				s.exportLayerEnv(i)
-				libs.WriteTitle("Shell dans %s", ref)
-				return layerShell(planDir)
-			}
-		}
-		return fmt.Errorf("layer '%s' not found in stack '%s'", targetLayer, s.Name)
-	}
-
-	for i, layer := range layers {
-		planDir := layerResolvePath(s.RootDir, layer.Layer, layer.Plan)
-		rt := layerDetectType(planDir)
-		if rt != recipeUnknown {
-			ref := layerRef(layer.Layer, layer.Plan)
-			s.exportLayerEnv(i)
-			libs.WriteTitle("Shell dans %s (premier layer disponible)", ref)
-			return layerShell(planDir)
-		}
-	}
-
-	return fmt.Errorf("no layer with recipe found in stack '%s'", s.Name)
-}
-
 func (s *StackStore) Urls() error {
 	layers := s.Definition.Stack.Layers
 	layerCount := len(layers)
