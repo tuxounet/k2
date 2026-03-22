@@ -62,6 +62,163 @@ func TestNewStackStore_NotFound(t *testing.T) {
 	}
 }
 
+// --- extends ---
+
+func TestNewStackStore_Extends(t *testing.T) {
+	tmpDir := t.TempDir()
+	stacksDir := filepath.Join(tmpDir, "stacks")
+	os.MkdirAll(stacksDir, 0755)
+
+	parent := `version: v0
+stack:
+  description: "Parent stack"
+  env:
+    TZ: Europe/Paris
+    SHARED: parent-val
+  layers:
+    - layer: layers/base
+      plan: svc-a
+`
+	child := `version: v0
+stack:
+  description: "Child stack"
+  extends: parent.yaml
+  env:
+    SHARED: child-val
+    EXTRA: extra-val
+  layers:
+    - layer: layers/app
+      plan: svc-b
+`
+	os.WriteFile(filepath.Join(stacksDir, "parent.yaml"), []byte(parent), 0644)
+	os.WriteFile(filepath.Join(stacksDir, "child.yaml"), []byte(child), 0644)
+
+	store, err := NewStackStore(tmpDir, "child", false)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	// Should have 2 layers: parent's svc-a first, then child's svc-b
+	if len(store.Definition.Stack.Layers) != 2 {
+		t.Fatalf("expected 2 layers, got %d", len(store.Definition.Stack.Layers))
+	}
+	if store.Definition.Stack.Layers[0].Plan != "svc-a" {
+		t.Fatalf("expected first layer plan 'svc-a', got '%s'", store.Definition.Stack.Layers[0].Plan)
+	}
+	if store.Definition.Stack.Layers[1].Plan != "svc-b" {
+		t.Fatalf("expected second layer plan 'svc-b', got '%s'", store.Definition.Stack.Layers[1].Plan)
+	}
+
+	// Child env should override parent env
+	if store.Definition.Stack.Env["SHARED"] != "child-val" {
+		t.Fatalf("expected SHARED=child-val, got '%s'", store.Definition.Stack.Env["SHARED"])
+	}
+	// Parent env should be inherited
+	if store.Definition.Stack.Env["TZ"] != "Europe/Paris" {
+		t.Fatalf("expected TZ=Europe/Paris, got '%s'", store.Definition.Stack.Env["TZ"])
+	}
+	// Child-only env should be present
+	if store.Definition.Stack.Env["EXTRA"] != "extra-val" {
+		t.Fatalf("expected EXTRA=extra-val, got '%s'", store.Definition.Stack.Env["EXTRA"])
+	}
+}
+
+func TestNewStackStore_ExtendsChain(t *testing.T) {
+	tmpDir := t.TempDir()
+	stacksDir := filepath.Join(tmpDir, "stacks")
+	os.MkdirAll(stacksDir, 0755)
+
+	grandparent := `version: v0
+stack:
+  layers:
+    - layer: layers/gp
+      plan: gp-svc
+`
+	parent := `version: v0
+stack:
+  extends: grandparent.yaml
+  layers:
+    - layer: layers/p
+      plan: p-svc
+`
+	child := `version: v0
+stack:
+  extends: parent.yaml
+  layers:
+    - layer: layers/c
+      plan: c-svc
+`
+	os.WriteFile(filepath.Join(stacksDir, "grandparent.yaml"), []byte(grandparent), 0644)
+	os.WriteFile(filepath.Join(stacksDir, "parent.yaml"), []byte(parent), 0644)
+	os.WriteFile(filepath.Join(stacksDir, "child.yaml"), []byte(child), 0644)
+
+	store, err := NewStackStore(tmpDir, "child", false)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if len(store.Definition.Stack.Layers) != 3 {
+		t.Fatalf("expected 3 layers, got %d", len(store.Definition.Stack.Layers))
+	}
+	if store.Definition.Stack.Layers[0].Plan != "gp-svc" {
+		t.Fatalf("expected first layer 'gp-svc', got '%s'", store.Definition.Stack.Layers[0].Plan)
+	}
+	if store.Definition.Stack.Layers[1].Plan != "p-svc" {
+		t.Fatalf("expected second layer 'p-svc', got '%s'", store.Definition.Stack.Layers[1].Plan)
+	}
+	if store.Definition.Stack.Layers[2].Plan != "c-svc" {
+		t.Fatalf("expected third layer 'c-svc', got '%s'", store.Definition.Stack.Layers[2].Plan)
+	}
+}
+
+func TestNewStackStore_ExtendsCircular(t *testing.T) {
+	tmpDir := t.TempDir()
+	stacksDir := filepath.Join(tmpDir, "stacks")
+	os.MkdirAll(stacksDir, 0755)
+
+	a := `version: v0
+stack:
+  extends: b.yaml
+  layers: []
+`
+	b := `version: v0
+stack:
+  extends: a.yaml
+  layers: []
+`
+	os.WriteFile(filepath.Join(stacksDir, "a.yaml"), []byte(a), 0644)
+	os.WriteFile(filepath.Join(stacksDir, "b.yaml"), []byte(b), 0644)
+
+	_, err := NewStackStore(tmpDir, "a", false)
+	if err == nil {
+		t.Fatal("expected error for circular extends")
+	}
+	if !strings.Contains(err.Error(), "circular") {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestNewStackStore_ExtendsNotFound(t *testing.T) {
+	tmpDir := t.TempDir()
+	stacksDir := filepath.Join(tmpDir, "stacks")
+	os.MkdirAll(stacksDir, 0755)
+
+	child := `version: v0
+stack:
+  extends: nonexistent.yaml
+  layers: []
+`
+	os.WriteFile(filepath.Join(stacksDir, "child.yaml"), []byte(child), 0644)
+
+	_, err := NewStackStore(tmpDir, "child", false)
+	if err == nil {
+		t.Fatal("expected error for missing parent stack")
+	}
+	if !strings.Contains(err.Error(), "not found") {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
 func TestLayerDetectType_Shell(t *testing.T) {
 	tmpDir := t.TempDir()
 	verbsDir := filepath.Join(tmpDir, "verbs")

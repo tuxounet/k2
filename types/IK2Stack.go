@@ -7,6 +7,7 @@ type IK2Stack struct {
 
 type IK2StackBody struct {
 	Description string            `yaml:"description"`
+	Extends     string            `yaml:"extends,omitempty"`
 	Env         map[string]string `yaml:"env"`
 	Layers      []IK2StackLayer   `yaml:"layers"`
 }

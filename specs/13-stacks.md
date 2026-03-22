@@ -15,6 +15,7 @@ version: v0
 
 stack:
   description: "Human-readable description of this stack"
+  extends: base-stack.yaml   # Optional: inherit layers/env from another stack
 
   env:                       # Global environment variables for all layers
     TZ: Europe/Paris
@@ -31,6 +32,31 @@ stack:
       env:
         LITELLM_PORT: "4000"
 ```
+
+## Stack Extends
+
+A stack can extend another stack using the `extends` field. The parent stack's layers are prepended before the child's own layers, and parent environment variables are inherited (child values take precedence).
+
+```yaml
+version: v0
+
+stack:
+  description: "Extended stack"
+  extends: parent-stack.yaml   # Path relative to stacks/ directory
+  env:
+    EXTRA_VAR: value           # Merged with parent env
+
+  layers:
+    - layer: layers/additional
+      plan: my-extra-service   # Appended after parent layers
+```
+
+### Resolution rules
+
+- **Layers**: parent layers first, then child layers.
+- **Env**: parent env as base, child env overrides on conflict.
+- **Chaining**: extends can be chained (grandparent → parent → child).
+- **Circular detection**: circular extends chains are detected and rejected.
 
 ## Layer Types
 

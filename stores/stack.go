@@ -46,6 +46,10 @@ func NewStackStore(rootDir string, stackName string, debug bool) (*StackStore, e
 		return nil, fmt.Errorf("cannot parse stack '%s': %w", stackName, err)
 	}
 
+	if err := resolveStackExtends(&def, stacksDir, map[string]bool{stackFile: true}); err != nil {
+		return nil, fmt.Errorf("cannot resolve extends for stack '%s': %w", stackName, err)
+	}
+
 	return &StackStore{
 		RootDir:    absRoot,
 		StacksDir:  stacksDir,
@@ -53,6 +57,56 @@ func NewStackStore(rootDir string, stackName string, debug bool) (*StackStore, e
 		Definition: &def,
 		Debug:      debug,
 	}, nil
+}
+
+// resolveStackExtends resolves the extends chain for a stack definition.
+// Parent layers are prepended before the child's own layers.
+// Parent env vars are merged with child env taking precedence.
+// The seen map prevents circular references.
+func resolveStackExtends(def *types.IK2Stack, stacksDir string, seen map[string]bool) error {
+	if def.Stack.Extends == "" {
+		return nil
+	}
+
+	parentFile := filepath.Join(stacksDir, def.Stack.Extends)
+	if seen[parentFile] {
+		return fmt.Errorf("circular extends detected: %s", def.Stack.Extends)
+	}
+	seen[parentFile] = true
+
+	if _, err := os.Stat(parentFile); os.IsNotExist(err) {
+		return fmt.Errorf("parent stack not found: %s", def.Stack.Extends)
+	}
+
+	data, err := os.ReadFile(parentFile)
+	if err != nil {
+		return fmt.Errorf("cannot read parent stack: %w", err)
+	}
+
+	var parent types.IK2Stack
+	if err := yaml.Unmarshal(data, &parent); err != nil {
+		return fmt.Errorf("cannot parse parent stack '%s': %w", def.Stack.Extends, err)
+	}
+
+	// Recursively resolve the parent's own extends
+	if err := resolveStackExtends(&parent, stacksDir, seen); err != nil {
+		return err
+	}
+
+	// Merge env: parent env as base, child env overrides
+	mergedEnv := make(map[string]string)
+	for k, v := range parent.Stack.Env {
+		mergedEnv[k] = v
+	}
+	for k, v := range def.Stack.Env {
+		mergedEnv[k] = v
+	}
+	def.Stack.Env = mergedEnv
+
+	// Prepend parent layers before child layers
+	def.Stack.Layers = append(parent.Stack.Layers, def.Stack.Layers...)
+
+	return nil
 }
 
 func (s *StackStore) logDebug(format string, a ...any) {
