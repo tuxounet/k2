@@ -8,9 +8,10 @@ import (
 	"github.com/urfave/cli/v3"
 )
 
-var ApplyCmd = &cli.Command{
-	Name:  "apply",
-	Usage: "apply all elements in current inventory folder",
+var RenderCmd = &cli.Command{
+	Name:    "render",
+	Aliases: []string{"apply"},
+	Usage:   "render all elements in current inventory folder",
 	Flags: []cli.Flag{
 		&cli.StringFlag{
 			Name:        "inventory",
@@ -20,15 +21,15 @@ var ApplyCmd = &cli.Command{
 		},
 	},
 	Action: func(context.Context, *cli.Command) error {
-		return doApply()
+		return doRender()
 	},
 }
 
-func doApply() error {
-	libs.WriteOutputf("Applying inventory %s\n", initialInventoryFile)
+func doRender() error {
+	libs.WriteTitle("Render %s", initialInventoryFile)
 
 	if initialInventoryFile == "" {
-		initialInventoryFile = "./k2.inventory.yaml"
+		initialInventoryFile = libs.DefaultInventoryFile
 	}
 
 	inventory, err := stores.NewInventory(initialInventoryFile)

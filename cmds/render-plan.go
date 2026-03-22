@@ -9,8 +9,8 @@ import (
 	"github.com/urfave/cli/v3"
 )
 
-var PlanCmd = &cli.Command{
-	Name:  "plan",
+var RenderPlanCmd = &cli.Command{
+	Name:  "render-plan",
 	Usage: "plan all elements in current inventory folder",
 	Flags: []cli.Flag{
 		&cli.StringFlag{
@@ -21,15 +21,15 @@ var PlanCmd = &cli.Command{
 		},
 	},
 	Action: func(context.Context, *cli.Command) error {
-		return doPlan()
+		return doRenderPlan()
 	},
 }
 
-func doPlan() error {
-	libs.WriteOutputf("Planning inventory %s\n", initialInventoryFile)
+func doRenderPlan() error {
+	libs.WriteTitle("Plan %s", initialInventoryFile)
 
 	if initialInventoryFile == "" {
-		initialInventoryFile = "./k2.inventory.yaml"
+		initialInventoryFile = libs.DefaultInventoryFile
 	}
 
 	inventory, err := stores.NewInventory(initialInventoryFile)
@@ -40,9 +40,9 @@ func doPlan() error {
 	if err != nil {
 		return err
 	}
-	libs.WriteOutputf("PLAN RESULT: %d\n", len(plan.Tasks))
+	libs.WriteDetail("%d actions planned", len(plan.Tasks))
 	for _, r := range plan.Tasks {
-		libs.WriteOutputf("WILL DO ACTION: %v\n", r)
+		libs.WriteStep(libs.IconPlan, "%v", r)
 	}
 
 	return nil

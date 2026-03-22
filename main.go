@@ -6,8 +6,10 @@ import (
 
 	"log"
 	"os"
+	"strings"
 
 	"github.com/tuxounet/k2/cmds"
+	"github.com/tuxounet/k2/libs"
 	"github.com/urfave/cli/v3"
 )
 
@@ -21,10 +23,16 @@ func main() {
 		Version:               version,
 		EnableShellCompletion: true,
 		Description:           "k2 is a template engine",
+		Before: func(ctx context.Context, cmd *cli.Command) (context.Context, error) {
+			libs.WriteBanner(strings.TrimSpace(version))
+			return ctx, nil
+		},
 		Commands: []*cli.Command{
-			cmds.PlanCmd,
-			cmds.ApplyCmd,
-			cmds.DestroyCmd,
+			cmds.RenderPlanCmd,
+			cmds.RenderCmd,
+			cmds.UnrenderCmd,
+			cmds.StackCmd,
+			cmds.StacksCmd,
 		},
 	}
 

@@ -1,5 +1,6 @@
 package libs
 
 const (
-	RefsDir = ".refs"
+	RefsDir              = ".refs"
+	DefaultInventoryFile = "k2.inventory.yaml"
 )

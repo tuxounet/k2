@@ -1,0 +1,15 @@
+version: v0
+
+stack:
+  description: "Human-readable description of this stack"
+  extends: 
+  - stack-one.yaml # Path relative to project root
+  env: # Global environment variables for all layers
+    TZ: Europe/Paris
+    MY_VAR: my-value-2
+
+  layers:
+    # Layer-a is implicit , extended from stack-one.yaml
+    - layer: ./layers # Path relative to project root
+      plan: layer-b # Plan directory name
+   

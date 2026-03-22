@@ -1,0 +1,17 @@
+
+version: v0
+
+stack:
+  description: "Human-readable description of this stack"
+
+  env:                       # Global environment variables for all layers
+    TZ: Europe/Paris
+    MY_VAR: my-value
+
+  layers:
+    - layer: ./layers  # Path relative to project root
+      plan: layer-a                  # Plan directory name
+      env:                                   # Per-layer env overrides
+        OLLAMA_PORT: "11434"
+
+ 
