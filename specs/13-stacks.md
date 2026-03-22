@@ -15,7 +15,8 @@ version: v0
 
 stack:
   description: "Human-readable description of this stack"
-  extends: base-stack.yaml   # Optional: inherit layers/env from another stack
+  extends:                           # Optional: inherit layers/env from parent stacks
+    - base-stack.yaml                # Paths relative to stacks/ directory
 
   env:                       # Global environment variables for all layers
     TZ: Europe/Paris
@@ -35,27 +36,29 @@ stack:
 
 ## Stack Extends
 
-A stack can extend another stack using the `extends` field. The parent stack's layers are prepended before the child's own layers, and parent environment variables are inherited (child values take precedence).
+A stack can extend one or more parent stacks using the `extends` field (a list of stack file names). Each parent's layers are prepended in order before the child's own layers, and parent environment variables are inherited (later parents and the child take precedence).
 
 ```yaml
 version: v0
 
 stack:
   description: "Extended stack"
-  extends: parent-stack.yaml   # Path relative to stacks/ directory
+  extends:                          # List of parent stacks (paths relative to stacks/)
+    - base-infra.yaml
+    - base-services.yaml
   env:
-    EXTRA_VAR: value           # Merged with parent env
+    EXTRA_VAR: value                # Merged with parent env
 
   layers:
     - layer: layers/additional
-      plan: my-extra-service   # Appended after parent layers
+      plan: my-extra-service        # Appended after all parent layers
 ```
 
 ### Resolution rules
 
-- **Layers**: parent layers first, then child layers.
-- **Env**: parent env as base, child env overrides on conflict.
-- **Chaining**: extends can be chained (grandparent → parent → child).
+- **Layers**: parent layers are prepended in list order, then child layers.
+- **Env**: parents merged in order (later wins), child env overrides all.
+- **Chaining**: each parent can itself extend other stacks.
 - **Circular detection**: circular extends chains are detected and rejected.
 
 ## Layer Types

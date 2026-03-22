@@ -58,7 +58,7 @@ k2 exposes three commands. Each accepts an optional `--inventory` flag
 ### Stack commands (`k2 stack <sub-command>`)
 
 Stack commands orchestrate multi-layer deployments. Each sub-command requires a stack name as first argument.
-Stacks support **extends** — a stack can inherit layers and env from a parent stack via `extends: parent.yaml`.
+Stacks support **extends** — a stack can inherit layers and env from one or more parent stacks via `extends: [parent.yaml, ...]`.
 
 | Sub-command    | Description                                                         |
 |----------------|---------------------------------------------------------------------|

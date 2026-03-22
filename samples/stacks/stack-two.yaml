@@ -2,7 +2,8 @@ version: v0
 
 stack:
   description: "Human-readable description of this stack"
-  extends: stack-one.yaml # Path relative to project root
+  extends: 
+  - stack-one.yaml # Path relative to project root
   env: # Global environment variables for all layers
     TZ: Europe/Paris
     MY_VAR: my-value-2

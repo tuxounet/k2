@@ -59,54 +59,70 @@ func NewStackStore(rootDir string, stackName string, debug bool) (*StackStore, e
 	}, nil
 }
 
-// resolveStackExtends resolves the extends chain for a stack definition.
-// Parent layers are prepended before the child's own layers.
+// resolveStackExtends resolves the extends list for a stack definition.
+// Each parent's layers are prepended (in order) before the child's own layers.
 // Parent env vars are merged with child env taking precedence.
 // The seen map prevents circular references.
 func resolveStackExtends(def *types.IK2Stack, stacksDir string, seen map[string]bool) error {
-	if def.Stack.Extends == "" {
+	if len(def.Stack.Extends) == 0 {
 		return nil
 	}
 
-	parentFile := filepath.Join(stacksDir, def.Stack.Extends)
-	if seen[parentFile] {
-		return fmt.Errorf("circular extends detected: %s", def.Stack.Extends)
-	}
-	seen[parentFile] = true
-
-	if _, err := os.Stat(parentFile); os.IsNotExist(err) {
-		return fmt.Errorf("parent stack not found: %s", def.Stack.Extends)
-	}
-
-	data, err := os.ReadFile(parentFile)
-	if err != nil {
-		return fmt.Errorf("cannot read parent stack: %w", err)
-	}
-
-	var parent types.IK2Stack
-	if err := yaml.Unmarshal(data, &parent); err != nil {
-		return fmt.Errorf("cannot parse parent stack '%s': %w", def.Stack.Extends, err)
-	}
-
-	// Recursively resolve the parent's own extends
-	if err := resolveStackExtends(&parent, stacksDir, seen); err != nil {
-		return err
-	}
-
-	// Merge env: parent env as base, child env overrides
+	var inheritedLayers []types.IK2StackLayer
 	mergedEnv := make(map[string]string)
-	for k, v := range parent.Stack.Env {
-		mergedEnv[k] = v
+
+	for _, ext := range def.Stack.Extends {
+		parentFile := filepath.Join(stacksDir, ext)
+		if seen[parentFile] {
+			return fmt.Errorf("circular extends detected: %s", ext)
+		}
+		seen[parentFile] = true
+
+		if _, err := os.Stat(parentFile); os.IsNotExist(err) {
+			return fmt.Errorf("parent stack not found: %s", ext)
+		}
+
+		data, err := os.ReadFile(parentFile)
+		if err != nil {
+			return fmt.Errorf("cannot read parent stack: %w", err)
+		}
+
+		var parent types.IK2Stack
+		if err := yaml.Unmarshal(data, &parent); err != nil {
+			return fmt.Errorf("cannot parse parent stack '%s': %w", ext, err)
+		}
+
+		// Recursively resolve the parent's own extends
+		if err := resolveStackExtends(&parent, stacksDir, copySeen(seen)); err != nil {
+			return err
+		}
+
+		// Collect parent env (later parents override earlier ones)
+		for k, v := range parent.Stack.Env {
+			mergedEnv[k] = v
+		}
+
+		inheritedLayers = append(inheritedLayers, parent.Stack.Layers...)
 	}
+
+	// Child env overrides all parents
 	for k, v := range def.Stack.Env {
 		mergedEnv[k] = v
 	}
 	def.Stack.Env = mergedEnv
 
-	// Prepend parent layers before child layers
-	def.Stack.Layers = append(parent.Stack.Layers, def.Stack.Layers...)
+	// Prepend all parent layers before child layers
+	def.Stack.Layers = append(inheritedLayers, def.Stack.Layers...)
 
 	return nil
+}
+
+func copySeen(seen map[string]bool) map[string]bool {
+	c := make(map[string]bool, len(seen))
+	for k, v := range seen {
+		c[k] = v
+	}
+	return c
 }
 
 func (s *StackStore) logDebug(format string, a ...any) {

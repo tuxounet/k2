@@ -82,7 +82,8 @@ stack:
 	child := `version: v0
 stack:
   description: "Child stack"
-  extends: parent.yaml
+  extends:
+    - parent.yaml
   env:
     SHARED: child-val
     EXTRA: extra-val
@@ -136,14 +137,16 @@ stack:
 `
 	parent := `version: v0
 stack:
-  extends: grandparent.yaml
+  extends:
+    - grandparent.yaml
   layers:
     - layer: layers/p
       plan: p-svc
 `
 	child := `version: v0
 stack:
-  extends: parent.yaml
+  extends:
+    - parent.yaml
   layers:
     - layer: layers/c
       plan: c-svc
@@ -178,12 +181,14 @@ func TestNewStackStore_ExtendsCircular(t *testing.T) {
 
 	a := `version: v0
 stack:
-  extends: b.yaml
+  extends:
+    - b.yaml
   layers: []
 `
 	b := `version: v0
 stack:
-  extends: a.yaml
+  extends:
+    - a.yaml
   layers: []
 `
 	os.WriteFile(filepath.Join(stacksDir, "a.yaml"), []byte(a), 0644)
@@ -205,7 +210,8 @@ func TestNewStackStore_ExtendsNotFound(t *testing.T) {
 
 	child := `version: v0
 stack:
-  extends: nonexistent.yaml
+  extends:
+    - nonexistent.yaml
   layers: []
 `
 	os.WriteFile(filepath.Join(stacksDir, "child.yaml"), []byte(child), 0644)
